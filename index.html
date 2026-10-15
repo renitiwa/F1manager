@@ -2,19 +2,23 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>F1 PIT WALL MANAGER 2026</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>F1 PIT WALL & RACING MANAGER 2026 ULTIMATE</title>
+<!-- Three.js & PeerJS CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 <style>
   :root {
-    --bg-dark: #0b0d13;
-    --panel-bg: #151922;
-    --panel-border: #262c3a;
+    --bg-dark: #090b10;
+    --panel-bg: #131722;
+    --panel-border: #252c3d;
     --f1-red: #e10600;
     --text-main: #f0f4f8;
     --text-sub: #8b95a5;
     --purple: #b138ff;
     --green: #00e676;
     --yellow: #ffd600;
+    --blue: #00b0ff;
     --soft: #ff2a2a;
     --med: #ffd600;
     --hard: #f0f0f0;
@@ -27,6 +31,7 @@
     margin: 0;
     padding: 0;
     user-select: none;
+    -webkit-user-select: none;
     font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   }
 
@@ -39,107 +44,117 @@
     flex-direction: column;
   }
 
-  /* トップバー */
+  /* トップヘッダー */
   header {
-    height: 54px;
-    background: linear-gradient(90deg, #11141d 0%, #1a1f2e 100%);
+    height: 52px;
+    background: linear-gradient(90deg, #0f131c 0%, #192030 100%);
     border-bottom: 2px solid var(--f1-red);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 18px;
+    padding: 0 14px;
     flex-shrink: 0;
+    z-index: 20;
   }
 
   .brand {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     font-weight: 900;
-    font-size: 1.15rem;
-    letter-spacing: 1px;
+    font-size: 1.05rem;
+    letter-spacing: 0.8px;
   }
 
   .brand-badge {
     background: var(--f1-red);
     color: #fff;
-    padding: 3px 10px;
+    padding: 2px 9px;
     border-radius: 4px;
     font-style: italic;
+  }
+
+  .session-pill {
+    background: #252d40;
+    border: 1px solid #3c4866;
+    color: var(--yellow);
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 800;
   }
 
   .race-status-bar {
     display: flex;
     align-items: center;
-    gap: 20px;
-    font-size: 0.9rem;
+    gap: 14px;
+    font-size: 0.85rem;
   }
 
   .lap-counter {
-    font-size: 1.2rem;
+    font-size: 1.05rem;
     font-weight: 800;
-    background: #202634;
-    padding: 5px 14px;
+    background: #1d2332;
+    padding: 4px 12px;
     border-radius: 6px;
     border: 1px solid var(--panel-border);
   }
 
   .flag-badge {
-    padding: 5px 14px;
+    padding: 4px 12px;
     border-radius: 6px;
     font-weight: 800;
-    letter-spacing: 1px;
-    text-transform: uppercase;
+    font-size: 0.8rem;
   }
   .flag-green { background: #00c853; color: #000; }
-  .flag-yellow { background: var(--yellow); color: #000; animation: pulse 1s infinite; }
   .flag-vsc { background: var(--yellow); color: #000; border: 2px dashed #000; animation: pulse 0.8s infinite; }
   .flag-sc { background: #ff9100; color: #000; border: 2px solid #fff; animation: pulse 0.8s infinite; }
 
   @keyframes pulse {
     0%, 100% { opacity: 1; }
-    50% { opacity: 0.65; }
+    50% { opacity: 0.6; }
   }
 
   .weather-box {
     display: flex;
     align-items: center;
-    gap: 12px;
-    background: #1d2230;
-    padding: 5px 12px;
+    gap: 10px;
+    background: #1a202e;
+    padding: 4px 10px;
     border-radius: 6px;
     border: 1px solid var(--panel-border);
+    font-size: 0.8rem;
   }
 
   .speed-controls {
     display: flex;
-    gap: 6px;
+    gap: 5px;
+    align-items: center;
   }
 
   .btn-speed {
-    background: #23293a;
+    background: #212738;
     color: var(--text-main);
-    border: 1px solid #384157;
-    padding: 6px 12px;
+    border: 1px solid #36405a;
+    padding: 5px 10px;
     border-radius: 4px;
     cursor: pointer;
     font-weight: 700;
-    transition: 0.15s;
+    font-size: 0.78rem;
   }
-  .btn-speed:hover { background: #313950; }
   .btn-speed.active {
     background: var(--f1-red);
-    border-color: #ff4d4d;
+    border-color: #ff5252;
     color: #fff;
   }
 
-  /* メインレイアウト */
+  /* メイングリッド */
   .dashboard {
     flex: 1;
     display: grid;
-    grid-template-columns: 390px 1fr 420px;
-    gap: 10px;
-    padding: 10px;
+    grid-template-columns: 350px 1fr 390px;
+    gap: 8px;
+    padding: 8px;
     overflow: hidden;
   }
 
@@ -153,80 +168,49 @@
   }
 
   .panel-header {
-    background: #1c222f;
-    padding: 8px 12px;
-    font-size: 0.82rem;
+    background: #1a202c;
+    padding: 7px 10px;
+    font-size: 0.78rem;
     font-weight: 800;
-    letter-spacing: 0.8px;
+    letter-spacing: 0.6px;
     color: var(--text-sub);
     border-bottom: 1px solid var(--panel-border);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    text-transform: uppercase;
   }
 
-  /* 左：タイミングタワー */
+  /* タイミングタワー */
   .timing-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.82rem;
+    font-size: 0.78rem;
   }
-
   .timing-table th {
     text-align: left;
-    padding: 6px 8px;
+    padding: 5px 6px;
     color: var(--text-sub);
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     border-bottom: 1px solid var(--panel-border);
-    background: #171c26;
+    background: #151a24;
   }
-
   .timing-table td {
-    padding: 7px 6px;
-    border-bottom: 1px solid #1e2433;
+    padding: 6px 5px;
+    border-bottom: 1px solid #1c2230;
     font-variant-numeric: tabular-nums;
   }
-
-  .timing-row {
-    transition: background 0.2s;
-  }
-  .timing-row.player-row {
-    background: rgba(225, 6, 0, 0.12);
-  }
-  .timing-row:hover {
-    background: rgba(255, 255, 255, 0.05);
-  }
-
-  .pos-cell {
-    font-weight: 800;
-    width: 28px;
-    text-align: center;
-  }
-
-  .driver-badge {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-weight: 800;
-  }
-
-  .team-bar {
-    width: 4px;
-    height: 18px;
-    border-radius: 2px;
-  }
+  .timing-row.player-row { background: rgba(225, 6, 0, 0.14); }
+  .timing-row.friend-row { background: rgba(0, 176, 255, 0.14); }
 
   .tire-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
     font-weight: 900;
-    font-size: 0.72rem;
-    color: #000;
+    font-size: 0.68rem;
     border: 2px solid currentColor;
     background: #111;
   }
@@ -237,119 +221,224 @@
   .tire-W { color: var(--wet); }
 
   .wear-mini-bar {
-    width: 46px;
-    height: 6px;
-    background: #2a3142;
+    width: 38px;
+    height: 5px;
+    background: #283044;
     border-radius: 3px;
     overflow: hidden;
     display: inline-block;
     vertical-align: middle;
-    margin-left: 4px;
+    margin-left: 3px;
   }
-  .wear-mini-fill {
-    height: 100%;
-    transition: width 0.2s;
-  }
+  .wear-mini-fill { height: 100%; }
 
   .drs-tag {
-    font-size: 0.65rem;
+    font-size: 0.62rem;
     padding: 1px 4px;
     border-radius: 3px;
     background: var(--green);
     color: #000;
     font-weight: 800;
-    margin-left: 4px;
+    margin-left: 3px;
   }
-
   .pit-tag {
-    font-size: 0.65rem;
+    font-size: 0.62rem;
     padding: 1px 4px;
     border-radius: 3px;
     background: var(--yellow);
     color: #000;
     font-weight: 800;
-    margin-left: 4px;
+    margin-left: 3px;
   }
 
-  .fastest-lap {
-    color: var(--purple);
-    font-weight: 800;
-  }
-
-  /* 中央：トラックマップ＆無線ログ */
+  /* 中央ビューポート＆カメラ切替 */
   .center-col {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
     overflow: hidden;
   }
 
-  .map-panel {
+  .viewport-panel {
     flex: 1;
     position: relative;
-    min-height: 260px;
+    min-height: 300px;
   }
 
-  #trackCanvas {
+  .camera-tabs {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  .cam-btn {
+    background: #232a3b;
+    color: var(--text-main);
+    border: 1px solid #354059;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.12s;
+  }
+  .cam-btn:hover { background: #2f384f; }
+  .cam-btn.active {
+    background: var(--blue);
+    color: #000;
+    border-color: #80d8ff;
+  }
+
+  .viewport-stage {
+    flex: 1;
+    position: relative;
+    background: #0b0e15;
+    overflow: hidden;
+  }
+
+  #trackCanvas2D, #threeContainer {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
-    display: block;
-    background: radial-gradient(circle at center, #181e2c 0%, #0e121a 100%);
+  }
+
+  /* ドライビングHUD & タッチ操作オーバーレイ */
+  .driving-hud {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 12px;
+    z-index: 10;
+  }
+
+  .hud-top-banner {
+    align-self: center;
+    background: rgba(15, 19, 28, 0.85);
+    border: 1px solid #38435e;
+    border-radius: 8px;
+    padding: 6px 16px;
+    display: flex;
+    gap: 18px;
+    align-items: center;
+    pointer-events: auto;
+  }
+
+  .speedo-cluster {
+    align-self: center;
+    margin-top: auto;
+    background: rgba(10, 13, 20, 0.88);
+    border: 2px solid #35405a;
+    border-top: 3px solid var(--f1-red);
+    border-radius: 12px;
+    padding: 8px 20px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    pointer-events: auto;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+  }
+
+  .rpm-lights {
+    display: flex;
+    gap: 3px;
+    margin-bottom: 4px;
+  }
+  .rpm-led {
+    width: 10px;
+    height: 6px;
+    border-radius: 2px;
+    background: #252c3d;
+  }
+
+  .touch-controls {
+    position: absolute;
+    inset: auto 12px 12px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    pointer-events: none;
+    z-index: 12;
+  }
+
+  .touch-pad-group {
+    display: flex;
+    gap: 8px;
+    pointer-events: auto;
+  }
+
+  .touch-btn {
+    width: 66px;
+    height: 66px;
+    border-radius: 14px;
+    background: rgba(25, 32, 48, 0.82);
+    border: 2px solid #4a5778;
+    color: #fff;
+    font-weight: 900;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .touch-btn:active, .touch-btn.pressed {
+    background: var(--f1-red);
+    border-color: #fff;
+    transform: scale(0.96);
   }
 
   .forecast-strip {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 6px;
-    padding: 8px 12px;
-    background: #121620;
+    gap: 5px;
+    padding: 6px 10px;
+    background: #11151f;
     border-top: 1px solid var(--panel-border);
   }
-
   .forecast-item {
-    background: #1a202e;
-    border: 1px solid #262f45;
-    border-radius: 5px;
-    padding: 5px 8px;
+    background: #181e2c;
+    border: 1px solid #263047;
+    border-radius: 4px;
+    padding: 4px 6px;
     text-align: center;
-    font-size: 0.75rem;
+    font-size: 0.72rem;
   }
 
   .radio-panel {
-    height: 185px;
+    height: 155px;
     flex-shrink: 0;
   }
-
   .radio-log {
     flex: 1;
     overflow-y: auto;
-    padding: 8px 12px;
+    padding: 6px 10px;
     display: flex;
     flex-direction: column;
-    gap: 5px;
-    font-size: 0.8rem;
+    gap: 4px;
+    font-size: 0.76rem;
   }
-
   .radio-msg {
-    padding: 5px 8px;
+    padding: 4px 8px;
     border-radius: 4px;
-    background: #1b2130;
+    background: #191f2e;
     border-left: 3px solid #4a5568;
-    line-height: 1.35;
   }
-  .radio-msg.engineer { border-left-color: #00b0ff; }
+  .radio-msg.engineer { border-left-color: var(--blue); }
   .radio-msg.alert { border-left-color: var(--yellow); background: rgba(255, 214, 0, 0.08); }
-  .radio-msg.purple { border-left-color: var(--purple); }
   .radio-msg.danger { border-left-color: var(--f1-red); background: rgba(225, 6, 0, 0.12); }
+  .radio-msg.p2p { border-left-color: var(--green); background: rgba(0, 230, 118, 0.08); }
 
-  /* 右：2台ストラテジーコントロール */
+  /* 右：2台ストラテジーパネル */
   .strategy-col {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
     overflow-y: auto;
   }
-
   .car-card {
     flex: 1;
     background: var(--panel-bg);
@@ -359,149 +448,92 @@
     flex-direction: column;
     overflow: hidden;
   }
-
   .car-header {
-    padding: 8px 12px;
-    background: #1e2434;
+    padding: 6px 10px;
+    background: #1c2233;
     display: flex;
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid var(--panel-border);
   }
-
-  .car-title {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 900;
-    font-size: 1rem;
-  }
-
   .car-body {
-    padding: 10px 12px;
+    padding: 8px 10px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
     flex: 1;
     justify-content: space-between;
   }
-
   .telemetry-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
+    gap: 6px;
   }
-
   .tele-box {
-    background: #10141d;
-    border: 1px solid #232a3b;
-    padding: 6px 8px;
-    border-radius: 6px;
+    background: #0f131c;
+    border: 1px solid #22293a;
+    padding: 5px 7px;
+    border-radius: 5px;
   }
-
   .tele-label {
-    font-size: 0.68rem;
+    font-size: 0.65rem;
     color: var(--text-sub);
     display: flex;
     justify-content: space-between;
-    margin-bottom: 3px;
   }
-
-  .tele-val {
-    font-size: 0.92rem;
-    font-weight: 800;
-  }
-
+  .tele-val { font-size: 0.85rem; font-weight: 800; }
   .bar-bg {
     width: 100%;
-    height: 6px;
-    background: #252c3d;
+    height: 5px;
+    background: #232a3b;
     border-radius: 3px;
-    margin-top: 4px;
+    margin-top: 3px;
     overflow: hidden;
   }
-  .bar-fill {
-    height: 100%;
-    transition: width 0.2s;
-  }
+  .bar-fill { height: 100%; }
 
-  .control-group {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .control-label {
-    font-size: 0.7rem;
-    color: var(--text-sub);
-    font-weight: 700;
-    text-transform: uppercase;
-  }
-
-  .btn-row {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 4px;
-  }
-  .btn-row.three-col {
-    grid-template-columns: repeat(3, 1fr);
-  }
-  .btn-row.five-col {
-    grid-template-columns: repeat(5, 1fr);
-  }
+  .btn-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+  .btn-row.three-col { grid-template-columns: repeat(3, 1fr); }
+  .btn-row.five-col { grid-template-columns: repeat(5, 1fr); }
 
   .strat-btn {
-    background: #1d2333;
-    border: 1px solid #2e374f;
+    background: #1c2230;
+    border: 1px solid #2d364d;
     color: var(--text-main);
-    padding: 6px 4px;
-    font-size: 0.73rem;
+    padding: 5px 3px;
+    font-size: 0.7rem;
     font-weight: 700;
     border-radius: 4px;
     cursor: pointer;
-    transition: 0.12s;
     text-align: center;
   }
-  .strat-btn:hover {
-    background: #283147;
-  }
+  .strat-btn:hover { background: #273046; }
   .strat-btn.active {
-    background: #2b3954;
-    border-color: #63b3ed;
+    background: #263859;
+    border-color: var(--blue);
     color: #fff;
-    box-shadow: inset 0 0 6px rgba(99, 179, 237, 0.4);
   }
   .strat-btn.active-push {
-    background: rgba(225, 6, 0, 0.28);
-    border-color: #ff4d4d;
+    background: rgba(225, 6, 0, 0.3);
+    border-color: #ff5252;
     color: #fff;
   }
   .strat-btn.active-save {
-    background: rgba(0, 230, 118, 0.2);
+    background: rgba(0, 230, 118, 0.22);
     border-color: var(--green);
     color: #fff;
   }
 
-  .pit-controls {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-    margin-top: 2px;
-    padding-top: 6px;
-    border-top: 1px solid #232a3b;
-  }
-
   .box-btn {
     flex: 1;
-    padding: 8px 10px;
+    padding: 7px 8px;
     font-weight: 900;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     border-radius: 5px;
     border: 1px solid #444;
     background: #23293a;
     color: #fff;
     cursor: pointer;
-    transition: 0.15s;
   }
   .box-btn.active {
     background: var(--yellow);
@@ -510,12 +542,12 @@
     animation: pulse 0.9s infinite;
   }
 
-  /* モーダル（セットアップ・リザルト） */
+  /* モーダル・ロビー画面 */
   .modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(7, 9, 14, 0.88);
-    backdrop-filter: blur(6px);
+    background: rgba(6, 8, 13, 0.92);
+    backdrop-filter: blur(8px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -523,39 +555,39 @@
   }
 
   .modal-card {
-    background: #151924;
+    background: #141824;
     border: 2px solid var(--panel-border);
     border-top: 4px solid var(--f1-red);
     border-radius: 10px;
-    width: 760px;
-    max-width: 95vw;
-    max-height: 90vh;
+    width: 980px;
+    max-width: 96vw;
+    max-height: 93vh;
     overflow-y: auto;
-    padding: 24px;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+    padding: 20px 24px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.8);
   }
 
-  .modal-title {
-    font-size: 1.5rem;
-    font-weight: 900;
-    margin-bottom: 6px;
+  .lobby-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--panel-border);
+    padding-bottom: 10px;
   }
-
-  .modal-subtitle {
-    color: var(--text-sub);
-    font-size: 0.9rem;
-    margin-bottom: 20px;
-  }
-
-  .setup-section {
-    margin-bottom: 18px;
-  }
-  .setup-section h3 {
+  .lobby-tab-btn {
+    background: #1d2333;
+    border: 1px solid #2e3852;
+    color: var(--text-main);
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 800;
+    cursor: pointer;
     font-size: 0.85rem;
-    color: var(--text-sub);
-    text-transform: uppercase;
-    margin-bottom: 8px;
-    letter-spacing: 0.8px;
+  }
+  .lobby-tab-btn.active {
+    background: var(--f1-red);
+    border-color: #ff5252;
+    color: #fff;
   }
 
   .team-grid {
@@ -565,33 +597,58 @@
   }
 
   .select-card {
-    background: #1c2231;
-    border: 2px solid #2b3348;
+    background: #1b2130;
+    border: 2px solid #2a334a;
     border-radius: 6px;
-    padding: 10px;
+    padding: 9px;
     cursor: pointer;
     transition: 0.15s;
   }
   .select-card:hover { border-color: #4a5778; }
   .select-card.selected {
     border-color: var(--f1-red);
-    background: rgba(225, 6, 0, 0.14);
+    background: rgba(225, 6, 0, 0.15);
+  }
+
+  .upgrade-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+  .upgrade-card {
+    background: #191f2e;
+    border: 1px solid #2b354d;
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 8px;
   }
 
   .start-btn {
     width: 100%;
-    padding: 14px;
+    padding: 13px;
     background: var(--f1-red);
     color: #fff;
     border: none;
     border-radius: 6px;
-    font-size: 1.05rem;
+    font-size: 1rem;
     font-weight: 900;
     cursor: pointer;
-    letter-spacing: 1px;
-    margin-top: 10px;
+    letter-spacing: 0.8px;
+    margin-top: 12px;
   }
   .start-btn:hover { background: #ff1e18; }
+
+  .input-dark {
+    background: #0e121b;
+    border: 1px solid #333d57;
+    color: #fff;
+    padding: 8px 10px;
+    border-radius: 5px;
+    font-size: 0.85rem;
+  }
 
   .hidden { display: none !important; }
 </style>
@@ -602,35 +659,37 @@
 <header>
   <div class="brand">
     <span class="brand-badge">F1</span>
-    <span>PIT WALL MANAGER 2026</span>
-    <span id="circuitTitle" style="color:var(--text-sub); font-size:0.9rem; font-weight:600; margin-left:8px;">SUZUKA GP</span>
+    <span>MANAGER &amp; RACING 2026</span>
+    <span id="sessionBadge" class="session-pill">RACE</span>
+    <span id="circuitTitle" style="color:var(--text-sub); font-size:0.85rem; font-weight:600;">SUZUKA GP</span>
   </div>
 
   <div class="race-status-bar">
     <div id="flagBadge" class="flag-badge flag-green">GREEN FLAG</div>
-    <div class="lap-counter">LAP <span id="currentLap">1</span> / <span id="totalLaps">25</span></div>
+    <div class="lap-counter" id="lapCounterBox">LAP <span id="currentLap">1</span> / <span id="totalLaps">20</span></div>
     <div class="weather-box">
       <span id="weatherIcon">☀️ DRY</span>
-      <span style="color:var(--text-sub);">路面水量: <strong id="trackWaterTxt" style="color:#fff;">0%</strong></span>
-      <span style="color:var(--text-sub);">気温: <strong id="ambientTempTxt" style="color:#fff;">26°C</strong></span>
+      <span style="color:var(--text-sub);">水量: <strong id="trackWaterTxt" style="color:#fff;">0%</strong></span>
+      <span style="color:var(--text-sub);">資金: <strong id="headerMoneyTxt" style="color:var(--green);">$25.0M</strong></span>
     </div>
   </div>
 
   <div class="speed-controls">
-    <button class="btn-speed" onclick="setSimSpeed(0)" id="spd0">⏸ PAUSE</button>
-    <button class="btn-speed active" onclick="setSimSpeed(1)" id="spd1">▶ 1x</button>
-    <button class="btn-speed" onclick="setSimSpeed(2)" id="spd2">⏩ 2x</button>
-    <button class="btn-speed" onclick="setSimSpeed(4)" id="spd4">⚡ 4x</button>
+    <button class="btn-speed" onclick="setSimSpeed(0)" id="spd0">⏸</button>
+    <button class="btn-speed active" onclick="setSimSpeed(1)" id="spd1">1x</button>
+    <button class="btn-speed" onclick="setSimSpeed(2)" id="spd2">2x</button>
+    <button class="btn-speed" onclick="setSimSpeed(4)" id="spd4">4x</button>
+    <button class="btn-speed" style="background:#2b354d; margin-left:6px;" onclick="openLobbyModal()">🏠 ロビー / 開発</button>
   </div>
 </header>
 
 <!-- メインダッシュボード -->
 <div class="dashboard">
-  <!-- 左：ライブタイミングタワー -->
+  <!-- 左：タイミングタワー -->
   <div class="panel">
     <div class="panel-header">
       <span>LIVE TIMING TOWER</span>
-      <span id="flHolderTxt" style="color:var(--purple); font-size:0.75rem;">FL: --</span>
+      <span id="flHolderTxt" style="color:var(--purple); font-size:0.72rem;">BEST: --</span>
     </div>
     <div style="overflow-y:auto; flex:1;">
       <table class="timing-table">
@@ -638,7 +697,7 @@
           <tr>
             <th>P</th>
             <th>DRIVER</th>
-            <th>GAP</th>
+            <th>GAP / BEST</th>
             <th>INT</th>
             <th>TIRE</th>
             <th>LAST LAP</th>
@@ -648,29 +707,89 @@
         <tbody id="timingBody"></tbody>
       </table>
     </div>
-    <div style="padding:8px 12px; background:#121620; border-top:1px solid var(--panel-border); font-size:0.74rem; color:var(--text-sub); display:flex; justify-content:space-between;">
-      <span>※ドライ時は2種類以上のスリック装着義務あり</span>
+    <div style="padding:7px 10px; background:#10141d; border-top:1px solid var(--panel-border); font-size:0.72rem; color:var(--text-sub); display:flex; justify-content:space-between;">
+      <span id="p2pStatusFooter">P2P: シングルプレイ</span>
       <span id="mandatoryStatus" style="color:var(--yellow); font-weight:700;">タイヤ義務: 未達成</span>
     </div>
   </div>
 
-  <!-- 中央：トラックマップ＆気象レーダー＆無線ログ -->
+  <!-- 中央：3Dビュー / 2Dマップ / 雨雲レーダー / ドライビングHUD -->
   <div class="center-col">
-    <div class="panel map-panel">
+    <div class="panel viewport-panel">
       <div class="panel-header">
-        <span>CIRCUIT TELEMETRY &amp; GPS TRACKER</span>
-        <span id="pitLossInfo" style="font-size:0.75rem;">PIT LOSS: ~20.0s (SC/VSC時: ~11.0s)</span>
+        <div class="camera-tabs">
+          <button class="cam-btn" id="cam_2d" onclick="setCameraMode('2d')">🗺️ 2Dマップ</button>
+          <button class="cam-btn" id="cam_radar" onclick="setCameraMode('radar')">🌧️ 雨雲レーダー</button>
+          <button class="cam-btn active" id="cam_heli0" onclick="setCameraMode('heli0')">🚁 3D空撮 (#1)</button>
+          <button class="cam-btn" id="cam_heli1" onclick="setCameraMode('heli1')">🚁 3D空撮 (#2)</button>
+          <button class="cam-btn" id="cam_onboard0" onclick="setCameraMode('onboard0')">🎥 オンボード (#1)</button>
+          <button class="cam-btn" id="cam_onboard1" onclick="setCameraMode('onboard1')">🎥 オンボード (#2)</button>
+        </div>
+        <button class="cam-btn" id="nextSessionBtn" style="background:var(--green); color:#000; display:none;" onclick="advanceToNextSession()">⏭️ 次のセッションへ進む</button>
       </div>
-      <div style="flex:1; position:relative;">
-        <canvas id="trackCanvas"></canvas>
+
+      <div class="viewport-stage" id="viewportStage">
+        <!-- Three.js 3Dコンテナ -->
+        <div id="threeContainer"></div>
+        <!-- 2Dマップ & 雨雲レーダー Canvas -->
+        <canvas id="trackCanvas2D" class="hidden"></canvas>
+
+        <!-- ドライビングモード専用HUD -->
+        <div class="driving-hud hidden" id="drivingHud">
+          <div class="hud-top-banner">
+            <span style="font-weight:900; color:var(--f1-red);">🏎️ DRIVER MODE</span>
+            <span id="drvControlHint" style="font-size:0.78rem; color:var(--text-sub);">[W/↑]アクセル [S/↓]ブレーキ [A/D]ステア [Space]DRS [E]ERSブースト</span>
+            <button class="cam-btn" onclick="toggleDrivingAssist()">自動ステア補助: <span id="assistTxt">OFF</span></button>
+          </div>
+
+          <!-- タッチ操作ボタン群 -->
+          <div class="touch-controls hidden" id="touchControls">
+            <div class="touch-pad-group">
+              <div class="touch-btn" id="tBtnLeft">◀</div>
+              <div class="touch-btn" id="tBtnRight">▶</div>
+            </div>
+            <div class="touch-pad-group">
+              <div class="touch-btn" id="tBtnDrs" style="width:56px;height:56px;font-size:0.8rem;background:#1b3a2b;">DRS</div>
+              <div class="touch-btn" id="tBtnBrake" style="background:rgba(180,20,20,0.85);">BRK</div>
+              <div class="touch-btn" id="tBtnGas" style="background:rgba(0,160,80,0.85);">GAS</div>
+            </div>
+          </div>
+
+          <!-- スピードメーター＆ギア表示 -->
+          <div class="speedo-cluster">
+            <div>
+              <div class="rpm-lights" id="rpmLights">
+                <div class="rpm-led"></div><div class="rpm-led"></div><div class="rpm-led"></div>
+                <div class="rpm-led"></div><div class="rpm-led"></div><div class="rpm-led"></div>
+                <div class="rpm-led"></div><div class="rpm-led"></div><div class="rpm-led"></div>
+              </div>
+              <div style="display:flex; align-items:baseline; gap:8px;">
+                <span id="hudSpeed" style="font-size:1.7rem; font-weight:900; font-variant-numeric:tabular-nums;">0</span>
+                <span style="font-size:0.75rem; color:var(--text-sub);">km/h</span>
+              </div>
+            </div>
+            <div style="text-align:center; padding:0 10px; border-left:1px solid #333; border-right:1px solid #333;">
+              <div style="font-size:0.65rem; color:var(--text-sub);">GEAR</div>
+              <div id="hudGear" style="font-size:1.6rem; font-weight:900; color:var(--yellow);">N</div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:4px; font-size:0.75rem;">
+              <div>DRS: <strong id="hudDrsState" style="color:var(--text-sub);">CLOSED</strong></div>
+              <div>ERS: <strong id="hudErsState" style="color:var(--blue);">100%</strong></div>
+            </div>
+          </div>
+        </div>
       </div>
+
       <div class="forecast-strip" id="forecastStrip"></div>
     </div>
 
+    <!-- 無線＆P2Pチャットパネル -->
     <div class="panel radio-panel">
       <div class="panel-header">
         <span>PIT WALL TEAM RADIO &amp; RACE CONTROL</span>
-        <button class="strat-btn" style="padding:2px 8px;" onclick="triggerTeamOrder()">🔄 チームオーダー (順位入替)</button>
+        <div style="display:flex; gap:6px;">
+          <button class="strat-btn" style="padding:2px 8px;" onclick="triggerTeamOrder()">🔄 チームオーダー (順位入替)</button>
+        </div>
       </div>
       <div class="radio-log" id="radioLog"></div>
     </div>
@@ -683,74 +802,165 @@
   </div>
 </div>
 
-<!-- プリレース・セットアップモーダル -->
+<!-- ロビー / セットアップ / R&D強化 / P2Pフレンド モーダル -->
 <div class="modal-overlay" id="setupModal">
   <div class="modal-card">
-    <div class="modal-title">F1 PIT WALL MANAGER 2026</div>
-    <div class="modal-subtitle">指揮するチーム、開催サーキット、2台のスタートタイヤを選択して決勝レースを開始してください。</div>
-
-    <div class="setup-section">
-      <h3>1. チームを選択 (CONSTRUCTOR)</h3>
-      <div class="team-grid" id="teamSelectGrid"></div>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+      <div>
+        <div style="font-size:1.4rem; font-weight:900;">🏁 F1 PIT WALL &amp; RACING MANAGER 2026</div>
+        <div style="font-size:0.82rem; color:var(--text-sub);">3D/2D指揮・ドライビング走行・フリー走行＆予選・R&Dパーツ開発・P2Pフレンド対戦</div>
+      </div>
+      <div style="background:#1c2536; border:1px solid var(--green); padding:6px 14px; border-radius:8px; text-align:right;">
+        <div style="font-size:0.7rem; color:var(--text-sub);">TEAM BUDGET (開発資金)</div>
+        <div id="lobbyMoneyTxt" style="font-size:1.2rem; font-weight:900; color:var(--green);">$25.0M</div>
+      </div>
     </div>
 
-    <div class="setup-section">
-      <h3>2. サーキットを選択 (GRAND PRIX)</h3>
-      <div class="team-grid" id="circuitSelectGrid"></div>
+    <div class="lobby-tabs">
+      <button class="lobby-tab-btn active" id="tabBtn_race" onclick="switchLobbyTab('race')">🏎️ 1. チーム＆セッション設定</button>
+      <button class="lobby-tab-btn" id="tabBtn_rd" onclick="switchLobbyTab('rd')">🔧 2. マシン開発 (R&amp;D強化)</button>
+      <button class="lobby-tab-btn" id="tabBtn_p2p" onclick="switchLobbyTab('p2p')">🌐 3. P2Pフレンド＆マルチ対戦</button>
     </div>
 
-    <div class="setup-section">
-      <h3>3. スタートタイヤを選択 (STARTING COMPOUND)</h3>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;" id="startTireSelect"></div>
+    <!-- タブ1：レース＆モード設定 -->
+    <div id="lobbyTab_race">
+      <div style="margin-bottom:12px;">
+        <div style="font-size:0.78rem; color:var(--text-sub); font-weight:800; margin-bottom:6px;">1. 指揮・操作するチームを選択 (CONSTRUCTOR)</div>
+        <div class="team-grid" id="teamSelectGrid"></div>
+      </div>
+
+      <div style="margin-bottom:12px;">
+        <div style="font-size:0.78rem; color:var(--text-sub); font-weight:800; margin-bottom:6px;">2. サーキットを選択 (GRAND PRIX)</div>
+        <div class="team-grid" id="circuitSelectGrid"></div>
+      </div>
+
+      <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; margin-bottom:12px;">
+        <div style="background:#1a202f; padding:10px; border-radius:6px; border:1px solid #2b344b;">
+          <div style="font-size:0.76rem; color:var(--text-sub); font-weight:800; margin-bottom:6px;">3. ゲームプレイモード</div>
+          <div style="display:flex; flex-direction:column; gap:5px;">
+            <button class="strat-btn active" id="modeBtn_manage" onclick="setGameMode('manage')">👔 マネージモード (2台戦略指揮)</button>
+            <button class="strat-btn" id="modeBtn_drive" onclick="setGameMode('drive')">🏎️ ドライビングモード (#1を運転+#2指揮)</button>
+          </div>
+        </div>
+
+        <div style="background:#1a202f; padding:10px; border-radius:6px; border:1px solid #2b344b;">
+          <div style="font-size:0.76rem; color:var(--text-sub); font-weight:800; margin-bottom:6px;">4. 操作デバイス (ドライビング時)</div>
+          <div style="display:flex; flex-direction:column; gap:5px;">
+            <button class="strat-btn active" id="ctrlBtn_kb" onclick="setControlType('kb')">⌨️ キーボード (WASD / 矢印キー)</button>
+            <button class="strat-btn" id="ctrlBtn_mouse" onclick="setControlType('mouse')">🖱️ マウスステアリング + クリック加減速</button>
+            <button class="strat-btn" id="ctrlBtn_touch" onclick="setControlType('touch')">📱 タッチボタン操作 (スマホ・タブレット)</button>
+          </div>
+        </div>
+
+        <div style="background:#1a202f; padding:10px; border-radius:6px; border:1px solid #2b344b;">
+          <div style="font-size:0.76rem; color:var(--text-sub); font-weight:800; margin-bottom:6px;">5. ウィークエンド進行 (FP・予選の有無)</div>
+          <div style="display:flex; flex-direction:column; gap:5px;">
+            <button class="strat-btn active" id="wkBtn_full" onclick="setWeekendFormat('full')">🏁 フル開催 (フリー走行 → 予選 → 決勝)</button>
+            <button class="strat-btn" id="wkBtn_quali" onclick="setWeekendFormat('quali')">⏱️ 予選 ＋ 決勝レース</button>
+            <button class="strat-btn" id="wkBtn_race" onclick="setWeekendFormat('race')">🚀 決勝レースのみ (即スタート)</button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:0.78rem; color:var(--text-sub); font-weight:800; margin-bottom:6px;">6. 2台のスタートタイヤ選択 (STARTING COMPOUND)</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;" id="startTireSelect"></div>
+      </div>
     </div>
 
-    <button class="start-btn" onclick="startRace()">🏁 決勝レース開始 (LIGHTS OUT!)</button>
+    <!-- タブ2：R&D マシンパーツ開発 -->
+    <div id="lobbyTab_rd" class="hidden">
+      <div style="margin-bottom:10px; font-size:0.85rem; color:var(--text-sub);">
+        フリー走行のデータ収集ボーナスや決勝レースの賞金を使って、自チームのマシンパーツを強化できます（強化状態は自動保存されます）。
+      </div>
+      <div class="upgrade-grid" id="upgradeGrid"></div>
+      <div style="margin-top:12px; display:flex; justify-content:space-between; align-items:center; background:#181e2c; padding:10px 14px; border-radius:6px;">
+        <span style="font-size:0.82rem; color:var(--text-sub);">💡 フリー走行(FP)を完了すると開発資金 <strong>+$5.0M</strong>、決勝1位で <strong>+$15.0M</strong> 獲得できます！</span>
+        <button class="strat-btn" style="padding:6px 12px;" onclick="addTestBonusFunds()">💰 テスト用スポンサー資金 (+$10.0M)</button>
+      </div>
+    </div>
+
+    <!-- タブ3：P2P フレンド＆マルチプレイ -->
+    <div id="lobbyTab_p2p" class="hidden">
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px;">
+        <div style="background:#191f2e; padding:14px; border-radius:8px; border:1px solid #2b354d;">
+          <div style="font-weight:800; margin-bottom:8px; color:var(--blue);">📡 あなたのP2P フレンドコード (Peer ID)</div>
+          <div style="display:flex; gap:8px; margin-bottom:12px;">
+            <input type="text" id="myPeerIdInput" class="input-dark" style="flex:1; font-weight:800;" readonly value="生成中...">
+            <button class="strat-btn" style="padding:6px 12px;" onclick="copyMyPeerId()">📋 コピー</button>
+          </div>
+          <div style="font-size:0.78rem; color:var(--text-sub); margin-bottom:12px;">
+            このコードをフレンドに教えるか、下の欄にフレンドのコードを入力して接続すると、別々のチームを操作してマネージモードやドライビングモードで直接バトルできます！
+          </div>
+          <div style="font-weight:800; margin-bottom:6px;">🔗 フレンドに接続 / フレンド登録</div>
+          <div style="display:flex; gap:6px;">
+            <input type="text" id="friendIdInput" class="input-dark" style="flex:1;" placeholder="フレンドのコードを入力 (例: F1-XXXX)">
+            <button class="strat-btn active" style="padding:6px 12px;" onclick="connectToFriend()">接続</button>
+            <button class="strat-btn" style="padding:6px 10px;" onclick="saveFriendToList()">＋登録</button>
+          </div>
+          <div id="p2pLobbyStatus" style="margin-top:10px; font-size:0.82rem; color:var(--yellow); font-weight:700;">
+            ステータス: 待機中 (シングルプレイまたはホスト待機)
+          </div>
+        </div>
+
+        <div style="background:#191f2e; padding:14px; border-radius:8px; border:1px solid #2b354d;">
+          <div style="font-weight:800; margin-bottom:8px; color:var(--green);">👥 登録済みフレンドリスト</div>
+          <div id="friendListContainer" style="display:flex; flex-direction:column; gap:6px; max-height:190px; overflow-y:auto;"></div>
+        </div>
+      </div>
+    </div>
+
+    <button class="start-btn" onclick="launchWeekend()">🚦 セッション開始 (START RACE WEEKEND)</button>
   </div>
 </div>
 
-<!-- ポストレース・リザルトモーダル -->
+<!-- リザルトモーダル -->
 <div class="modal-overlay hidden" id="resultModal">
   <div class="modal-card">
-    <div class="modal-title" id="resultTitle">🏁 RACE CLASSIFICATION</div>
-    <div class="modal-subtitle" id="resultSubtitle">決勝レース結果</div>
-    <div id="resultTableContainer" style="max-height:380px; overflow-y:auto; margin-bottom:16px;"></div>
-    <button class="start-btn" onclick="location.reload()">🔁 別の戦略・サーキットでもう一度プレイ</button>
+    <div style="font-size:1.4rem; font-weight:900; margin-bottom:4px;" id="resultTitle">🏁 SESSION CLASSIFICATION</div>
+    <div style="color:var(--text-sub); font-size:0.9rem; margin-bottom:14px;" id="resultSubtitle">結果詳細</div>
+    <div id="resultTableContainer" style="max-height:360px; overflow-y:auto; margin-bottom:14px;"></div>
+    <div style="display:flex; gap:10px;">
+      <button class="start-btn" id="resultNextBtn" onclick="handleResultContinue()">⏭️ 次へ進む</button>
+    </div>
   </div>
 </div>
 
 <script>
-// === データ定義 ===
+// ==========================================
+// 1. 基本データ定義 (チーム・サーキット・タイヤ)
+// ==========================================
 const TEAMS = [
   {
-    id: 'rb', name: 'Red Bull Racing', color: '#3671C6', carPerf: 98,
+    id: 'rb', name: 'Red Bull Racing', color: '#3671C6', hex: 0x3671c6, carPerf: 98,
     drivers: [
       { code: 'VER', name: 'M. Verstappen', pace: 99, tireMgmt: 95, overtake: 98, grid: 1 },
-      { code: 'TSU', name: 'Y. Tsunoda', pace: 94, tireMgmt: 91, overtake: 95, grid: 4 }
+      { code: 'TSU', name: 'Y. Tsunoda', pace: 95, tireMgmt: 92, overtake: 96, grid: 4 }
     ]
   },
   {
-    id: 'mcl', name: 'McLaren F1', color: '#FF8000', carPerf: 98,
+    id: 'mcl', name: 'McLaren F1', color: '#FF8000', hex: 0xff8000, carPerf: 98,
     drivers: [
-      { code: 'NOR', name: 'L. Norris', pace: 98, tireMgmt: 94, overtake: 94, grid: 2 },
-      { code: 'PIA', name: 'O. Piastri', pace: 96, tireMgmt: 93, overtake: 95, grid: 5 }
+      { code: 'NOR', name: 'L. Norris', pace: 98, tireMgmt: 94, overtake: 95, grid: 2 },
+      { code: 'PIA', name: 'O. Piastri', pace: 97, tireMgmt: 94, overtake: 95, grid: 5 }
     ]
   },
   {
-    id: 'fer', name: 'Scuderia Ferrari', color: '#E80020', carPerf: 97,
+    id: 'fer', name: 'Scuderia Ferrari', color: '#E80020', hex: 0xe80020, carPerf: 97,
     drivers: [
-      { code: 'LEC', name: 'C. Leclerc', pace: 98, tireMgmt: 92, overtake: 96, grid: 3 },
+      { code: 'LEC', name: 'C. Leclerc', pace: 98, tireMgmt: 93, overtake: 96, grid: 3 },
       { code: 'HAM', name: 'L. Hamilton', pace: 97, tireMgmt: 98, overtake: 96, grid: 6 }
     ]
   },
   {
-    id: 'mer', name: 'Mercedes-AMG', color: '#27F4D2', carPerf: 96,
+    id: 'mer', name: 'Mercedes-AMG', color: '#27F4D2', hex: 0x27f4d2, carPerf: 96,
     drivers: [
       { code: 'RUS', name: 'G. Russell', pace: 96, tireMgmt: 93, overtake: 94, grid: 7 },
-      { code: 'ANT', name: 'K. Antonelli', pace: 94, tireMgmt: 90, overtake: 95, grid: 8 }
+      { code: 'ANT', name: 'K. Antonelli', pace: 95, tireMgmt: 91, overtake: 95, grid: 8 }
     ]
   },
   {
-    id: 'ast', name: 'Aston Martin', color: '#229971', carPerf: 93,
+    id: 'ast', name: 'Aston Martin', color: '#229971', hex: 0x229971, carPerf: 94,
     drivers: [
       { code: 'ALO', name: 'F. Alonso', pace: 96, tireMgmt: 97, overtake: 97, grid: 9 },
       { code: 'SAI', name: 'C. Sainz', pace: 95, tireMgmt: 95, overtake: 94, grid: 10 }
@@ -760,126 +970,237 @@ const TEAMS = [
 
 const CIRCUITS = [
   {
-    id: 'suzuka', name: '鈴鹿 (日本GP)', laps: 26, baseLapTime: 91.0,
-    tireWearMult: 1.25, pitLoss: 20.5, rainChance: 0.35, overtakeDiff: 1.0,
+    id: 'suzuka', name: '鈴鹿 (日本GP)', laps: 18, baseLapTime: 90.0,
+    tireWearMult: 1.25, pitLoss: 20.0, rainChance: 0.40, overtakeDiff: 1.0,
     path: [
-      [0.18,0.72],[0.32,0.72],[0.44,0.62],[0.38,0.48],[0.48,0.38],[0.58,0.48],
-      [0.68,0.32],[0.84,0.22],[0.88,0.38],[0.75,0.52],[0.55,0.55],[0.42,0.68],[0.26,0.82]
+      [0.18,0.75],[0.35,0.75],[0.48,0.64],[0.40,0.48],[0.52,0.36],[0.64,0.48],
+      [0.74,0.30],[0.86,0.22],[0.88,0.42],[0.74,0.56],[0.55,0.58],[0.40,0.70],[0.24,0.82]
     ]
   },
   {
-    id: 'monaco', name: 'モナコ (モナコGP)', laps: 28, baseLapTime: 74.0,
-    tireWearMult: 0.75, pitLoss: 19.0, rainChance: 0.20, overtakeDiff: 1.85,
+    id: 'monaco', name: 'モナコ (モナコGP)', laps: 20, baseLapTime: 73.0,
+    tireWearMult: 0.75, pitLoss: 18.5, rainChance: 0.20, overtakeDiff: 1.80,
     path: [
-      [0.25,0.75],[0.45,0.72],[0.62,0.55],[0.78,0.30],[0.85,0.42],[0.72,0.62],
-      [0.55,0.78],[0.35,0.85],[0.18,0.82]
+      [0.25,0.75],[0.48,0.72],[0.66,0.55],[0.80,0.28],[0.86,0.44],[0.72,0.64],
+      [0.54,0.80],[0.34,0.84],[0.18,0.80]
     ]
   },
   {
-    id: 'silverstone', name: 'シルバーストン (英国GP)', laps: 26, baseLapTime: 88.0,
-    tireWearMult: 1.35, pitLoss: 21.0, rainChance: 0.50, overtakeDiff: 0.85,
+    id: 'silverstone', name: 'シルバーストン (英国GP)', laps: 18, baseLapTime: 87.0,
+    tireWearMult: 1.30, pitLoss: 20.5, rainChance: 0.50, overtakeDiff: 0.85,
     path: [
-      [0.22,0.65],[0.45,0.75],[0.65,0.68],[0.82,0.52],[0.78,0.28],[0.55,0.22],
+      [0.22,0.65],[0.46,0.76],[0.68,0.68],[0.84,0.50],[0.78,0.26],[0.55,0.20],
       [0.42,0.38],[0.25,0.32],[0.16,0.48]
     ]
   },
   {
-    id: 'spa', name: 'スパ (ベルギーGP)', laps: 22, baseLapTime: 105.0,
-    tireWearMult: 1.20, pitLoss: 19.5, rainChance: 0.60, overtakeDiff: 0.75,
+    id: 'spa', name: 'スパ (ベルギーGP)', laps: 16, baseLapTime: 104.0,
+    tireWearMult: 1.20, pitLoss: 19.5, rainChance: 0.65, overtakeDiff: 0.75,
     path: [
-      [0.18,0.65],[0.28,0.42],[0.52,0.22],[0.78,0.26],[0.85,0.48],[0.68,0.62],
-      [0.58,0.52],[0.45,0.72],[0.28,0.80]
+      [0.18,0.66],[0.28,0.40],[0.54,0.20],[0.80,0.26],[0.86,0.48],[0.68,0.64],
+      [0.56,0.52],[0.44,0.74],[0.28,0.80]
     ]
   },
   {
-    id: 'monza', name: 'モンツァ (イタリアGP)', laps: 27, baseLapTime: 81.5,
-    tireWearMult: 0.90, pitLoss: 22.0, rainChance: 0.15, overtakeDiff: 0.70,
+    id: 'monza', name: 'モンツァ (イタリアGP)', laps: 20, baseLapTime: 80.5,
+    tireWearMult: 0.90, pitLoss: 21.5, rainChance: 0.15, overtakeDiff: 0.68,
     path: [
-      [0.15,0.72],[0.62,0.72],[0.82,0.58],[0.85,0.32],[0.65,0.25],[0.48,0.42],
-      [0.22,0.45],[0.12,0.58]
+      [0.16,0.72],[0.64,0.72],[0.84,0.58],[0.85,0.30],[0.65,0.24],[0.48,0.40],
+      [0.22,0.44],[0.12,0.58]
     ]
   }
 ];
 
 const TIRES = {
-  S: { name: 'SOFT', code: 'S', paceDelta: -0.95, wearRate: 3.7, optWater: [0, 15], optTemp: 100 },
-  M: { name: 'MEDIUM', code: 'M', paceDelta: 0.0, wearRate: 2.45, optWater: [0, 15], optTemp: 95 },
-  H: { name: 'HARD', code: 'H', paceDelta: 0.65, wearRate: 1.65, optWater: [0, 15], optTemp: 90 },
-  I: { name: 'INTER', code: 'I', paceDelta: 2.2, wearRate: 2.2, optWater: [15, 65], optTemp: 75 },
-  W: { name: 'WET', code: 'W', paceDelta: 4.8, wearRate: 1.8, optWater: [55, 100], optTemp: 65 }
+  S: { name: 'SOFT', code: 'S', paceDelta: -0.95, wearRate: 4.0, optTemp: 100 },
+  M: { name: 'MEDIUM', code: 'M', paceDelta: 0.0, wearRate: 2.6, optTemp: 95 },
+  H: { name: 'HARD', code: 'H', paceDelta: 0.65, wearRate: 1.75, optTemp: 90 },
+  I: { name: 'INTER', code: 'I', paceDelta: 2.2, wearRate: 2.3, optTemp: 75 },
+  W: { name: 'WET', code: 'W', paceDelta: 4.8, wearRate: 1.9, optTemp: 65 }
 };
 
 const PACE_MODES = [
   { id: 'conserve', label: '温存', paceMod: 0.55, wearMod: 0.70, tempMod: -6 },
   { id: 'standard', label: '標準', paceMod: 0.0, wearMod: 1.00, tempMod: 0 },
-  { id: 'aggressive', label: '攻め', paceMod: -0.38, wearMod: 1.28, tempMod: +5 },
-  { id: 'attack', label: '全力', paceMod: -0.75, wearMod: 1.65, tempMod: +11 }
+  { id: 'aggressive', label: '攻め', paceMod: -0.40, wearMod: 1.28, tempMod: +5 },
+  { id: 'attack', label: '全力', paceMod: -0.80, wearMod: 1.65, tempMod: +11 }
 ];
 
 const FUEL_MODES = [
   { id: 'save', label: 'セーブ', paceMod: 0.35, fuelRate: 0.82 },
   { id: 'balanced', label: '標準', paceMod: 0.0, fuelRate: 1.00 },
-  { id: 'push', label: 'リッチ', paceMod: -0.30, fuelRate: 1.22 }
+  { id: 'push', label: 'リッチ', paceMod: -0.32, fuelRate: 1.22 }
 ];
 
 const ERS_MODES = [
   { id: 'harvest', label: '充電', paceMod: 0.35, ersDelta: +18 },
   { id: 'deploy', label: '標準', paceMod: 0.0, ersDelta: -4 },
-  { id: 'overtake', label: 'OT展開', paceMod: -0.65, ersDelta: -26 }
+  { id: 'overtake', label: 'OT展開', paceMod: -0.68, ersDelta: -25 }
 ];
 
-// === ゲーム状態 ===
+const UPGRADE_PARTS = [
+  { id: 'aero', name: 'エアロダイナミクス', desc: 'コーナリング速度＆ダウンフォース向上 (-0.22秒/Lv)', baseCost: 6.0 },
+  { id: 'pu', name: 'パワーユニット(PU)', desc: 'ストレート最高速＆ERS回生効率向上 (-0.25秒/Lv)', baseCost: 7.5 },
+  { id: 'chassis', name: 'シャシー軽量化', desc: 'タイヤ摩耗軽減 (-7%/Lv) ＆ 運動性能向上', baseCost: 5.5 },
+  { id: 'pitcrew', name: 'ピットクルー機材', desc: 'ピットストップ静止時間を短縮 (-0.8秒/Lv)', baseCost: 4.5 }
+];
+
+// ==========================================
+// 2. ゲーム状態 & R&Dセーブデータ
+// ==========================================
 let selectedTeamIdx = 0;
 let selectedCircuitIdx = 0;
 let startTires = ['S', 'M'];
+let gameMode = 'manage'; // 'manage' or 'drive'
+let controlType = 'kb';  // 'kb', 'mouse', 'touch'
+let weekendFormat = 'full'; // 'full' (FP->Q->Race), 'quali' (Q->Race), 'race'
+let currentSession = 'RACE'; // 'FP', 'QUALI', 'RACE'
+let cameraMode = 'heli0'; // '2d', 'radar', 'heli0', 'heli1', 'onboard0', 'onboard1'
+
+let teamMoney = 25.0; // 単位: $M
+let teamUpgrades = {}; // teamId -> { aero:1, pu:1, chassis:1, pitcrew:1 }
+let savedFriends = [];
 
 let simSpeed = 1;
 let raceActive = false;
 let currentLap = 1;
-let totalLaps = 25;
-let flagState = 'GREEN'; // GREEN, VSC, SC
+let totalLaps = 18;
+let flagState = 'GREEN';
 let flagLapsLeft = 0;
 
-let trackWater = 0; // 0 - 100%
+let trackWater = 0;
 let weatherForecast = [];
+let rainClouds = []; // 雨雲レーダー用セル
 let fastestLap = { driver: null, time: 9999 };
 let cars = [];
 let smoothTrackPoints = [];
 
-// === セットアップUI初期化 ===
+// ドライビング入力状態
+let driveInput = { gas: false, brake: false, left: false, right: false, drs: false, ers: false, mouseSteer: 0 };
+let drivingAutoSteer = false;
+
+// P2Pマルチプレイ状態
+let peer = null;
+let myPeerId = '';
+let p2pConn = null;
+let isMultiplayerHost = true;
+let friendTeamIdx = -1;
+
+// Load saved data
+function loadPersistentData() {
+  try {
+    const m = localStorage.getItem('f1_2026_money');
+    if (m !== null) teamMoney = parseFloat(m);
+    const u = localStorage.getItem('f1_2026_upgrades');
+    if (u) teamUpgrades = JSON.parse(u);
+    const f = localStorage.getItem('f1_2026_friends');
+    if (f) savedFriends = JSON.parse(f);
+  } catch(e) {}
+
+  TEAMS.forEach(t => {
+    if (!teamUpgrades[t.id]) {
+      teamUpgrades[t.id] = { aero: 1, pu: 1, chassis: 1, pitcrew: 1 };
+    }
+  });
+  updateMoneyDisplay();
+}
+
+function savePersistentData() {
+  try {
+    localStorage.setItem('f1_2026_money', teamMoney.toFixed(2));
+    localStorage.setItem('f1_2026_upgrades', JSON.stringify(teamUpgrades));
+    localStorage.setItem('f1_2026_friends', JSON.stringify(savedFriends));
+  } catch(e) {}
+  updateMoneyDisplay();
+}
+
+function updateMoneyDisplay() {
+  const txt = `$${teamMoney.toFixed(1)}M`;
+  const hEl = document.getElementById('headerMoneyTxt');
+  const lEl = document.getElementById('lobbyMoneyTxt');
+  if (hEl) hEl.textContent = txt;
+  if (lEl) lEl.textContent = txt;
+}
+
+// ==========================================
+// 3. ロビーUI・R&D開発・モード選択
+// ==========================================
+function switchLobbyTab(tab) {
+  ['race', 'rd', 'p2p'].forEach(t => {
+    document.getElementById(`lobbyTab_${t}`).classList.toggle('hidden', t !== tab);
+    document.getElementById(`tabBtn_${t}`).classList.toggle('active', t === tab);
+  });
+  if (tab === 'rd') renderUpgradeGrid();
+  if (tab === 'p2p') renderFriendList();
+}
+
+function openLobbyModal() {
+  setSimSpeed(0);
+  document.getElementById('setupModal').classList.remove('hidden');
+  initSetupUI();
+}
+
 function initSetupUI() {
   const teamGrid = document.getElementById('teamSelectGrid');
-  teamGrid.innerHTML = TEAMS.map((t, idx) => `
-    <div class="select-card ${idx === selectedTeamIdx ? 'selected' : ''}" onclick="selectTeam(${idx})">
-      <div style="height:4px; background:${t.color}; border-radius:2px; margin-bottom:6px;"></div>
-      <div style="font-weight:800; font-size:0.88rem;">${t.name}</div>
-      <div style="font-size:0.75rem; color:var(--text-sub); margin-top:4px;">
-        ${t.drivers[0].code} (P${t.drivers[0].grid}) / ${t.drivers[1].code} (P${t.drivers[1].grid})
+  teamGrid.innerHTML = TEAMS.map((t, idx) => {
+    const upg = teamUpgrades[t.id] || { aero:1, pu:1, chassis:1, pitcrew:1 };
+    const totalLv = upg.aero + upg.pu + upg.chassis + upg.pitcrew;
+    return `
+      <div class="select-card ${idx === selectedTeamIdx ? 'selected' : ''}" onclick="selectTeam(${idx})">
+        <div style="height:4px; background:${t.color}; border-radius:2px; margin-bottom:5px;"></div>
+        <div style="font-weight:800; font-size:0.84rem;">${t.name}</div>
+        <div style="font-size:0.72rem; color:var(--text-sub); margin-top:3px;">
+          ${t.drivers[0].code} / ${t.drivers[1].code}
+        </div>
+        <div style="font-size:0.68rem; color:var(--green); margin-top:3px;">R&amp;D Lv合計: ${totalLv}</div>
       </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 
   const circuitGrid = document.getElementById('circuitSelectGrid');
   circuitGrid.innerHTML = CIRCUITS.map((c, idx) => `
     <div class="select-card ${idx === selectedCircuitIdx ? 'selected' : ''}" onclick="selectCircuit(${idx})">
-      <div style="font-weight:800; font-size:0.88rem;">${c.name}</div>
-      <div style="font-size:0.72rem; color:var(--text-sub); margin-top:4px;">
-        ${c.laps}周 / 摩耗:${c.tireWearMult}x<br>降雨確率:${Math.round(c.rainChance*100)}%
+      <div style="font-weight:800; font-size:0.84rem;">${c.name}</div>
+      <div style="font-size:0.7rem; color:var(--text-sub); margin-top:3px;">
+        決勝${c.laps}周 / 降雨率:${Math.round(c.rainChance*100)}%
       </div>
     </div>
   `).join('');
 
   renderStartTireSelect();
+  renderUpgradeGrid();
 }
 
 function selectTeam(idx) {
   selectedTeamIdx = idx;
   initSetupUI();
+  sendP2PData({ type: 'LOBBY_SYNC', teamIdx: selectedTeamIdx, circuitIdx: selectedCircuitIdx });
 }
 
 function selectCircuit(idx) {
   selectedCircuitIdx = idx;
   initSetupUI();
+  sendP2PData({ type: 'LOBBY_SYNC', teamIdx: selectedTeamIdx, circuitIdx: selectedCircuitIdx });
+}
+
+function setGameMode(m) {
+  gameMode = m;
+  document.getElementById('modeBtn_manage').classList.toggle('active', m === 'manage');
+  document.getElementById('modeBtn_drive').classList.toggle('active', m === 'drive');
+}
+
+function setControlType(c) {
+  controlType = c;
+  ['kb', 'mouse', 'touch'].forEach(k => {
+    document.getElementById(`ctrlBtn_${k}`).classList.toggle('active', k === c);
+  });
+}
+
+function setWeekendFormat(w) {
+  weekendFormat = w;
+  ['full', 'quali', 'race'].forEach(k => {
+    document.getElementById(`wkBtn_${k}`).classList.toggle('active', k === w);
+  });
 }
 
 function setStartTire(carIdx, comp) {
@@ -893,12 +1214,14 @@ function renderStartTireSelect() {
   container.innerHTML = [0, 1].map(i => {
     const d = team.drivers[i];
     return `
-      <div style="background:#1c2231; padding:10px 12px; border-radius:6px; border:1px solid #2b3348;">
-        <div style="font-weight:800; margin-bottom:8px;">#${i+1} ${d.name} (${d.code}) - Grid P${d.grid}</div>
+      <div style="background:#1a202f; padding:8px 10px; border-radius:6px; border:1px solid #2b3348;">
+        <div style="font-weight:800; font-size:0.8rem; margin-bottom:6px;">
+          #${i+1} ${d.name} (${d.code}) ${i===0 && gameMode==='drive' ? '<span style="color:var(--f1-red);">[あなた自身が運転]</span>' : ''}
+        </div>
         <div class="btn-row" style="grid-template-columns:repeat(3,1fr);">
           ${['S','M','H'].map(c => `
             <button class="strat-btn ${startTires[i] === c ? 'active' : ''}" onclick="setStartTire(${i}, '${c}')">
-              <span class="tire-icon tire-${c}" style="width:16px;height:16px;font-size:0.65rem;">${c}</span>${TIRES[c].name}
+              <span class="tire-icon tire-${c}" style="width:15px;height:15px;font-size:0.6rem;">${c}</span> ${TIRES[c].name}
             </button>
           `).join('')}
         </div>
@@ -907,43 +1230,576 @@ function renderStartTireSelect() {
   }).join('');
 }
 
-// === レース初期化 ===
-function startRace() {
+function renderUpgradeGrid() {
+  const team = TEAMS[selectedTeamIdx];
+  const upg = teamUpgrades[team.id];
+  const grid = document.getElementById('upgradeGrid');
+  if (!grid) return;
+
+  grid.innerHTML = UPGRADE_PARTS.map(p => {
+    const lv = upg[p.id] || 1;
+    const cost = +(p.baseCost * Math.pow(1.35, lv - 1)).toFixed(1);
+    const isMax = lv >= 5;
+    return `
+      <div class="upgrade-card">
+        <div>
+          <div style="font-weight:900; font-size:0.9rem; color:#fff;">${p.name}</div>
+          <div style="font-size:0.72rem; color:var(--text-sub); margin-top:4px;">${p.desc}</div>
+        </div>
+        <div>
+          <div style="display:flex; justify-content:space-between; font-size:0.78rem; margin-bottom:6px;">
+            <span>現在: <strong style="color:var(--yellow);">Lv.${lv} / 5</strong></span>
+            <span>${isMax ? 'MAX' : '$' + cost + 'M'}</span>
+          </div>
+          <div class="bar-bg" style="height:7px; margin-bottom:8px;">
+            <div class="bar-fill" style="width:${(lv/5)*100}%; background:var(--green);"></div>
+          </div>
+          <button class="strat-btn ${!isMax && teamMoney >= cost ? 'active' : ''}" style="width:100%; padding:7px;"
+            ${isMax || teamMoney < cost ? 'disabled' : ''}
+            onclick="buyUpgrade('${p.id}', ${cost})">
+            ${isMax ? '最大レベル到達' : `強化する ($${cost}M)`}
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function buyUpgrade(partId, cost) {
+  const team = TEAMS[selectedTeamIdx];
+  if (teamMoney < cost) return;
+  teamMoney -= cost;
+  teamUpgrades[team.id][partId] += 1;
+  savePersistentData();
+  renderUpgradeGrid();
+  initSetupUI();
+}
+
+function addTestBonusFunds() {
+  teamMoney += 10.0;
+  savePersistentData();
+  renderUpgradeGrid();
+}
+
+// ==========================================
+// 4. P2P フレンド機能 & マルチプレイ通信 (PeerJS)
+// ==========================================
+function initPeerJS() {
+  const randomCode = 'F1-' + Math.random().toString(36).substring(2, 7).toUpperCase();
+  try {
+    peer = new Peer(randomCode);
+    peer.on('open', id => {
+      myPeerId = id;
+      const el = document.getElementById('myPeerIdInput');
+      if (el) el.value = id;
+    });
+    peer.on('connection', conn => {
+      p2pConn = conn;
+      isMultiplayerHost = true;
+      setupConnHandlers();
+    });
+  } catch (e) {
+    console.warn('PeerJS init skipped or offline');
+  }
+}
+
+function copyMyPeerId() {
+  if (!myPeerId) return;
+  navigator.clipboard?.writeText(myPeerId);
+  document.getElementById('p2pLobbyStatus').textContent = `ステータス: コード (${myPeerId}) をクリップボードにコピーしました！`;
+}
+
+function connectToFriend(targetId) {
+  const id = targetId || document.getElementById('friendIdInput').value.trim();
+  if (!id || !peer) return;
+  document.getElementById('p2pLobbyStatus').textContent = `ステータス: ${id} に接続中...`;
+  p2pConn = peer.connect(id);
+  isMultiplayerHost = false;
+  setupConnHandlers();
+}
+
+function setupConnHandlers() {
+  if (!p2pConn) return;
+  p2pConn.on('open', () => {
+    document.getElementById('p2pLobbyStatus').textContent =
+      `🟢 フレンド (${p2pConn.peer}) とP2P接続完了！ (${isMultiplayerHost ? 'あなたがホスト' : 'ゲスト参加'})`;
+    document.getElementById('p2pStatusFooter').textContent = `🟢 P2P通信中: ${p2pConn.peer}`;
+    addRadioMsg('P2P MULTIPLAYER', `フレンド (${p2pConn.peer}) と接続されました！リアルタイム対戦が可能です。`, 'p2p');
+    sendP2PData({ type: 'LOBBY_SYNC', teamIdx: selectedTeamIdx, circuitIdx: selectedCircuitIdx });
+  });
+
+  p2pConn.on('data', data => {
+    if (!data || !data.type) return;
+    if (data.type === 'LOBBY_SYNC') {
+      friendTeamIdx = data.teamIdx;
+      addRadioMsg('P2P LOBBY', `フレンドが ${TEAMS[friendTeamIdx].name} を選択しました。`, 'p2p');
+    } else if (data.type === 'START_WEEKEND') {
+      selectedCircuitIdx = data.circuitIdx;
+      weekendFormat = data.weekendFormat;
+      friendTeamIdx = data.hostTeamIdx;
+      startWeekendInternal(false);
+    } else if (data.type === 'STRAT_CMD') {
+      const car = cars.find(c => c.code === data.code);
+      if (car) {
+        car[data.prop] = data.val;
+        addRadioMsg('P2P RIVAL', `フレンドが ${car.code} の戦略を変更 (${data.prop}: ${data.val})`, 'p2p');
+      }
+    } else if (data.type === 'DRIVE_SYNC') {
+      // フレンドが運転している車両の位置・速度を反映
+      const car = cars.find(c => c.code === data.code);
+      if (car) {
+        car.lap = data.lap;
+        car.lapProgress = data.lapProgress;
+        car.lateralOffset = data.lateralOffset;
+        car.speedKmh = data.speedKmh;
+      }
+    }
+  });
+}
+
+function sendP2PData(payload) {
+  if (p2pConn && p2pConn.open) {
+    p2pConn.send(payload);
+  }
+}
+
+function saveFriendToList() {
+  const id = document.getElementById('friendIdInput').value.trim();
+  if (!id || savedFriends.includes(id)) return;
+  savedFriends.push(id);
+  savePersistentData();
+  renderFriendList();
+}
+
+function removeFriendFromList(id) {
+  savedFriends = savedFriends.filter(f => f !== id);
+  savePersistentData();
+  renderFriendList();
+}
+
+function renderFriendList() {
+  const container = document.getElementById('friendListContainer');
+  if (!container) return;
+  if (savedFriends.length === 0) {
+    container.innerHTML = `<div style="font-size:0.78rem; color:var(--text-sub);">まだ登録されたフレンドはいません。左の入力欄から「＋登録」するとここに保存されます。</div>`;
+    return;
+  }
+  container.innerHTML = savedFriends.map(fid => `
+    <div style="display:flex; justify-content:space-between; align-items:center; background:#121722; padding:6px 10px; border-radius:5px; border:1px solid #263047;">
+      <span style="font-weight:800; font-size:0.82rem;">👤 ${fid}</span>
+      <div style="display:flex; gap:5px;">
+        <button class="strat-btn active" style="padding:3px 8px;" onclick="connectToFriend('${fid}')">接続</button>
+        <button class="strat-btn" style="padding:3px 8px;" onclick="removeFriendFromList('${fid}')">削除</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ==========================================
+// 5. Three.js 3Dワールド構築 & カメラ制御
+// ==========================================
+let scene, camera, renderer, trackCurve3D;
+let carMeshes3D = {};
+let rainSystem3D = null;
+
+function initThreeJS() {
+  const container = document.getElementById('threeContainer');
+  if (renderer) return;
+
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0c121d);
+  scene.fog = new THREE.FogExp2(0x0c121d, 0.0014);
+
+  camera = new THREE.PerspectiveCamera(60, container.clientWidth / Math.max(1, container.clientHeight), 0.5, 2000);
+
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(container.clientWidth, container.clientHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  container.innerHTML = '';
+  container.appendChild(renderer.domElement);
+
+  const ambient = new THREE.AmbientLight(0xdbe6ff, 0.75);
+  scene.add(ambient);
+
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.95);
+  dirLight.position.set(150, 300, 120);
+  scene.add(dirLight);
+
+  window.addEventListener('resize', onWindowResize);
+}
+
+function onWindowResize() {
+  const container = document.getElementById('threeContainer');
+  if (!renderer || !camera || !container) return;
+  const w = container.clientWidth;
+  const h = container.clientHeight;
+  if (w > 0 && h > 0) {
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
+  }
+}
+
+function build3DCircuitAndCars(circuit) {
+  initThreeJS();
+
+  // 既存オブジェクトをクリア（ライト以外）
+  for (let i = scene.children.length - 1; i >= 0; i--) {
+    const obj = scene.children[i];
+    if (obj.type !== 'AmbientLight' && obj.type !== 'DirectionalLight') {
+      scene.remove(obj);
+    }
+  }
+  carMeshes3D = {};
+
+  // 大地（芝生フィールド）
+  const groundGeo = new THREE.PlaneGeometry(2400, 2400);
+  const groundMat = new THREE.MeshLambertMaterial({ color: 0x15281e });
+  const ground = new THREE.Mesh(groundGeo, groundMat);
+  ground.rotation.x = -Math.PI / 2;
+  ground.position.y = -0.2;
+  scene.add(ground);
+
+  // 2D正規化パス(0〜1)を3D空間(-380〜+380m)に変換
+  const scale = 820;
+  const pts3D = circuit.path.map(p => new THREE.Vector3((p[0] - 0.5) * scale, 0, (p[1] - 0.5) * scale));
+  trackCurve3D = new THREE.CatmullRomCurve3(pts3D, true, 'catmullrom', 0.5);
+
+  // 路面リボンメッシュ作成
+  const segments = 450;
+  const roadWidth = 14;
+  const roadPositions = [];
+  const roadColors = [];
+  const kerbPositions = [];
+  const kerbColors = [];
+
+  for (let i = 0; i < segments; i++) {
+    const t1 = i / segments;
+    const t2 = (i + 1) / segments;
+    const p1 = trackCurve3D.getPointAt(t1);
+    const p2 = trackCurve3D.getPointAt(t2);
+    const tan1 = trackCurve3D.getTangentAt(t1).normalize();
+    const tan2 = trackCurve3D.getTangentAt(t2).normalize();
+    const n1 = new THREE.Vector3(-tan1.z, 0, tan1.x);
+    const n2 = new THREE.Vector3(-tan2.z, 0, tan2.x);
+
+    const l1 = p1.clone().addScaledVector(n1, -roadWidth / 2);
+    const r1 = p1.clone().addScaledVector(n1, roadWidth / 2);
+    const l2 = p2.clone().addScaledVector(n2, -roadWidth / 2);
+    const r2 = p2.clone().addScaledVector(n2, roadWidth / 2);
+
+    roadPositions.push(l1.x, 0.05, l1.z, r1.x, 0.05, r1.z, l2.x, 0.05, l2.z);
+    roadPositions.push(r1.x, 0.05, r1.z, r2.x, 0.05, r2.z, l2.x, 0.05, l2.z);
+
+    for (let k = 0; k < 6; k++) roadColors.push(0.16, 0.18, 0.22);
+
+    // 赤白縁石（カーブ外周・内周）
+    const kWidth = 1.6;
+    const kl1 = l1.clone().addScaledVector(n1, -kWidth);
+    const kl2 = l2.clone().addScaledVector(n2, -kWidth);
+    kerbPositions.push(kl1.x, 0.08, kl1.z, l1.x, 0.08, l1.z, kl2.x, 0.08, kl2.z);
+    kerbPositions.push(l1.x, 0.08, l1.z, l2.x, 0.08, l2.z, kl2.x, 0.08, kl2.z);
+
+    const kr1 = r1.clone().addScaledVector(n1, kWidth);
+    const kr2 = r2.clone().addScaledVector(n2, kWidth);
+    kerbPositions.push(r1.x, 0.08, r1.z, kr1.x, 0.08, kr1.z, r2.x, 0.08, r2.z);
+    kerbPositions.push(kr1.x, 0.08, kr1.z, kr2.x, 0.08, kr2.z, r2.x, 0.08, r2.z);
+
+    const isRed = i % 2 === 0;
+    for (let k = 0; k < 12; k++) {
+      if (isRed) kerbColors.push(0.88, 0.05, 0.05);
+      else kerbColors.push(0.95, 0.95, 0.95);
+    }
+  }
+
+  const roadGeo = new THREE.BufferGeometry();
+  roadGeo.setAttribute('position', new THREE.Float32BufferAttribute(roadPositions, 3));
+  roadGeo.setAttribute('color', new THREE.Float32BufferAttribute(roadColors, 3));
+  roadGeo.computeVertexNormals();
+  const roadMesh = new THREE.Mesh(roadGeo, new THREE.MeshLambertMaterial({ vertexColors: true }));
+  scene.add(roadMesh);
+
+  const kerbGeo = new THREE.BufferGeometry();
+  kerbGeo.setAttribute('position', new THREE.Float32BufferAttribute(kerbPositions, 3));
+  kerbGeo.setAttribute('color', new THREE.Float32BufferAttribute(kerbColors, 3));
+  const kerbMesh = new THREE.Mesh(kerbGeo, new THREE.MeshBasicMaterial({ vertexColors: true }));
+  scene.add(kerbMesh);
+
+  // スタート/フィニッシュ ガントリー（シグナルブリッジ）
+  const sfPt = trackCurve3D.getPointAt(0);
+  const sfTan = trackCurve3D.getTangentAt(0);
+  const gantryGroup = new THREE.Group();
+  const pillarGeo = new THREE.BoxGeometry(1.2, 9, 1.2);
+  const pillarMat = new THREE.MeshLambertMaterial({ color: 0xd0d7e2 });
+  const pLeft = new THREE.Mesh(pillarGeo, pillarMat);
+  pLeft.position.set(-8.5, 4.5, 0);
+  const pRight = new THREE.Mesh(pillarGeo, pillarMat);
+  pRight.position.set(8.5, 4.5, 0);
+  const beam = new THREE.Mesh(new THREE.BoxGeometry(19, 1.8, 1.8), new THREE.MeshLambertMaterial({ color: 0xe10600 }));
+  beam.position.set(0, 8.5, 0);
+  gantryGroup.add(pLeft, pRight, beam);
+  gantryGroup.position.copy(sfPt);
+  gantryGroup.lookAt(sfPt.clone().add(sfTan));
+  scene.add(gantryGroup);
+
+  // 周辺グランドスタンド＆照明塔オブジェクト配置
+  for (let i = 0; i < 24; i++) {
+    const angle = (i / 24) * Math.PI * 2;
+    const dist = 390 + (i % 3) * 45;
+    const stand = new THREE.Mesh(
+      new THREE.BoxGeometry(28, 10 + (i % 4) * 4, 12),
+      new THREE.MeshLambertMaterial({ color: i % 2 === 0 ? 0x222b3d : 0x2e3952 })
+    );
+    stand.position.set(Math.cos(angle) * dist, 5, Math.sin(angle) * dist);
+    stand.lookAt(0, 0, 0);
+    scene.add(stand);
+  }
+
+  // 3D雨粒パーティクルシステム
+  const rainGeo = new THREE.BufferGeometry();
+  const rainVerts = [];
+  for (let i = 0; i < 1800; i++) {
+    rainVerts.push((Math.random() - 0.5) * 600, Math.random() * 120, (Math.random() - 0.5) * 600);
+  }
+  rainGeo.setAttribute('position', new THREE.Float32BufferAttribute(rainVerts, 3));
+  rainSystem3D = new THREE.Points(
+    rainGeo,
+    new THREE.PointsMaterial({ color: 0x80c8ff, size: 0.9, transparent: true, opacity: 0.0 })
+  );
+  scene.add(rainSystem3D);
+
+  // 各F1マシンの3Dモデル生成
+  cars.forEach(car => {
+    const carGroup = createF1CarMesh(car.hexColor, car.isPlayer);
+    scene.add(carGroup);
+    carMeshes3D[car.code] = carGroup;
+  });
+}
+
+function createF1CarMesh(hexColor, isPlayer) {
+  const group = new THREE.Group();
+  const bodyMat = new THREE.MeshLambertMaterial({ color: hexColor });
+  const darkMat = new THREE.MeshLambertMaterial({ color: 0x15181f });
+  const tireMat = new THREE.MeshLambertMaterial({ color: 0x111111 });
+
+  // メインシャシー＆ノーズ
+  const chassis = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.55, 4.4), bodyMat);
+  chassis.position.set(0, 0.45, 0);
+  group.add(chassis);
+
+  // サイドポッド
+  const pods = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.45, 2.2), bodyMat);
+  pods.position.set(0, 0.4, -0.2);
+  group.add(pods);
+
+  // フロントウィング
+  const fWing = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.12, 0.6), darkMat);
+  fWing.position.set(0, 0.22, 2.2);
+  group.add(fWing);
+
+  // リアウィング
+  const rWing = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.65, 0.45), darkMat);
+  rWing.position.set(0, 0.85, -2.1);
+  group.add(rWing);
+
+  // コックピット＆Tカメラ
+  const cockpit = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.45, 0.9), darkMat);
+  cockpit.position.set(0, 0.8, 0.1);
+  group.add(cockpit);
+
+  // 4輪タイヤ
+  const wheelGeo = new THREE.CylinderGeometry(0.42, 0.42, 0.42, 12);
+  wheelGeo.rotateZ(Math.PI / 2);
+  [[-1.05, 1.4], [1.05, 1.4], [-1.05, -1.5], [1.05, -1.5]].forEach(([wx, wz]) => {
+    const w = new THREE.Mesh(wheelGeo, tireMat);
+    w.position.set(wx, 0.42, wz);
+    group.add(w);
+  });
+
+  // プレイヤー車両には上空から視認しやすいマーカーコーンを付与
+  if (isPlayer) {
+    const marker = new THREE.Mesh(
+      new THREE.ConeGeometry(0.55, 1.2, 4),
+      new THREE.MeshBasicMaterial({ color: 0x00e676 })
+    );
+    marker.rotation.x = Math.PI;
+    marker.position.set(0, 2.6, 0);
+    group.add(marker);
+  }
+
+  return group;
+}
+
+function setCameraMode(mode) {
+  cameraMode = mode;
+  ['2d', 'radar', 'heli0', 'heli1', 'onboard0', 'onboard1'].forEach(m => {
+    const btn = document.getElementById(`cam_${m}`);
+    if (btn) btn.classList.toggle('active', m === mode);
+  });
+
+  const is2D = (mode === '2d' || mode === 'radar');
+  document.getElementById('trackCanvas2D').classList.toggle('hidden', !is2D);
+  document.getElementById('threeContainer').classList.toggle('hidden', is2D);
+  if (!is2D) onWindowResize();
+}
+
+function update3DScene() {
+  if (!renderer || !scene || !camera || !trackCurve3D) return;
+
+  // 雨エフェクト更新
+  if (rainSystem3D) {
+    rainSystem3D.material.opacity = trackWater > 12 ? Math.min(0.75, trackWater / 90) : 0;
+    const pos = rainSystem3D.geometry.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      let y = pos.getY(i) - 2.2;
+      if (y < 0) y = 110;
+      pos.setY(i, y);
+    }
+    pos.needsUpdate = true;
+  }
+
+  // 各マシンの3D座標・向きを更新
+  cars.forEach((car, idx) => {
+    const mesh = carMeshes3D[car.code];
+    if (!mesh) return;
+    const t = ((car.lapProgress % 1) + 1) % 1;
+    const pt = trackCurve3D.getPointAt(t);
+    const tan = trackCurve3D.getTangentAt(t).normalize();
+    const normal = new THREE.Vector3(-tan.z, 0, tan.x);
+
+    // 横方向オフセット（オーバーテイクやドライビングライン用）
+    const lat = car.lateralOffset || ((idx % 2 === 0 ? -1 : 1) * 1.4);
+    const finalPos = pt.clone().addScaledVector(normal, lat);
+
+    mesh.position.set(finalPos.x, car.inPit ? -5 : 0, finalPos.z);
+    const lookTarget = finalPos.clone().add(tan);
+    mesh.lookAt(lookTarget.x, 0, lookTarget.z);
+  });
+
+  // カメラ追従（自チームのマシン #1 または #2）
+  const pCars = cars.filter(c => c.isPlayer).sort((a, b) => a.playerSlot - b.playerSlot);
+  const targetCar = (cameraMode.endsWith('1') && pCars[1]) ? pCars[1] : (pCars[0] || cars[0]);
+
+  if (targetCar && trackCurve3D) {
+    const t = ((targetCar.lapProgress % 1) + 1) % 1;
+    const pt = trackCurve3D.getPointAt(t);
+    const tan = trackCurve3D.getTangentAt(t).normalize();
+    const normal = new THREE.Vector3(-tan.z, 0, tan.x);
+    const carWorldPos = pt.clone().addScaledVector(normal, targetCar.lateralOffset || 0);
+
+    if (cameraMode.startsWith('onboard')) {
+      // オンボード（Tカメラ・コックピット視点）
+      const camPos = carWorldPos.clone().add(new THREE.Vector3(0, 1.45, 0)).addScaledVector(tan, 0.3);
+      const lookAtPos = carWorldPos.clone().addScaledVector(tan, 28).add(new THREE.Vector3(0, 0.8, 0));
+      camera.position.copy(camPos);
+      camera.lookAt(lookAtPos);
+    } else {
+      // 3Dヘリ空撮チェイスカメラ
+      const camPos = carWorldPos.clone().addScaledVector(tan, -22).add(new THREE.Vector3(0, 16, 0));
+      const lookAtPos = carWorldPos.clone().addScaledVector(tan, 12);
+      camera.position.lerp(camPos, 0.18);
+      camera.lookAt(lookAtPos);
+    }
+  }
+
+  renderer.render(scene, camera);
+}
+
+// ==========================================
+// 6. セッション開始 (FP / 予選 / 決勝) & 進行管理
+// ==========================================
+function launchWeekend() {
+  if (p2pConn && p2pConn.open && isMultiplayerHost) {
+    sendP2PData({
+      type: 'START_WEEKEND',
+      circuitIdx: selectedCircuitIdx,
+      weekendFormat: weekendFormat,
+      hostTeamIdx: selectedTeamIdx
+    });
+  }
+  startWeekendInternal(true);
+}
+
+function startWeekendInternal(fromButton) {
   document.getElementById('setupModal').classList.add('hidden');
+  document.getElementById('resultModal').classList.add('hidden');
+
+  if (weekendFormat === 'full') {
+    initSession('FP');
+  } else if (weekendFormat === 'quali') {
+    initSession('QUALI');
+  } else {
+    initSession('RACE');
+  }
+}
+
+function initSession(sessionType) {
+  currentSession = sessionType;
   const circuit = CIRCUITS[selectedCircuitIdx];
-  totalLaps = circuit.laps;
+
+  if (sessionType === 'FP') {
+    totalLaps = 3;
+    document.getElementById('sessionBadge').textContent = 'FREE PRACTICE (FP)';
+    document.getElementById('nextSessionBtn').style.display = 'inline-block';
+  } else if (sessionType === 'QUALI') {
+    totalLaps = 2;
+    document.getElementById('sessionBadge').textContent = 'QUALIFYING (Q)';
+    document.getElementById('nextSessionBtn').style.display = 'inline-block';
+  } else {
+    totalLaps = circuit.laps;
+    document.getElementById('sessionBadge').textContent = 'GRAND PRIX RACE';
+    document.getElementById('nextSessionBtn').style.display = 'none';
+  }
+
   currentLap = 1;
-  document.getElementById('circuitTitle').textContent = `${circuit.name} - ${totalLaps} LAPS`;
+  flagState = 'GREEN';
+  fastestLap = { driver: null, time: 9999 };
+  document.getElementById('circuitTitle').textContent = circuit.name;
+  document.getElementById('currentLap').textContent = currentLap;
   document.getElementById('totalLaps').textContent = totalLaps;
-  document.getElementById('pitLossInfo').textContent =
-    `PIT LOSS: ~${circuit.pitLoss.toFixed(1)}s (SC/VSC時: ~${(circuit.pitLoss * 0.55).toFixed(1)}s)`;
+  updateFlagUI();
 
   generateWeatherForecast(circuit);
   buildSmoothTrack(circuit.path);
 
+  // マシンデータ生成（R&D強化値を反映）
+  const prevGridOrder = cars.length === 10 ? cars.map(c => c.code) : null;
   cars = [];
+
   TEAMS.forEach((team, tIdx) => {
+    const upg = teamUpgrades[team.id] || { aero:1, pu:1, chassis:1, pitcrew:1 };
     team.drivers.forEach((drv, dIdx) => {
       const isPlayer = (tIdx === selectedTeamIdx);
-      const startComp = isPlayer ? startTires[dIdx] : (drv.grid <= 4 ? 'S' : (drv.grid <= 8 ? 'M' : 'H'));
+      const isFriend = (tIdx === friendTeamIdx);
+      const startComp = isPlayer ? startTires[dIdx] : (sessionType === 'QUALI' ? 'S' : (drv.grid <= 4 ? 'S' : 'M'));
+      const gridPos = prevGridOrder ? (prevGridOrder.indexOf(drv.code) + 1) : drv.grid;
+
       cars.push({
         id: `${team.id}_${drv.code}`,
         code: drv.code,
         name: drv.name,
+        teamId: team.id,
         teamName: team.name,
         color: team.color,
+        hexColor: team.hex,
         isPlayer: isPlayer,
+        isFriend: isFriend,
         playerSlot: isPlayer ? dIdx : -1,
-        carPerf: team.carPerf,
+        isHumanDriving: (isPlayer && dIdx === 0 && gameMode === 'drive'),
+        carPerf: team.carPerf + (upg.aero - 1) * 0.9 + (upg.pu - 1) * 1.0,
+        chassisLv: upg.chassis,
+        pitCrewLv: upg.pitcrew,
         paceSkill: drv.pace,
         tireSkill: drv.tireMgmt,
         overtakeSkill: drv.overtake,
-        pos: drv.grid,
+        pos: gridPos,
         lap: 1,
-        lapProgress: Math.max(0, 0.02 - (drv.grid - 1) * 0.004),
-        totalTime: (drv.grid - 1) * 0.45,
-        gapToLeader: (drv.grid - 1) * 0.45,
-        interval: drv.grid === 1 ? 0 : 0.45,
+        lapProgress: sessionType === 'RACE' ? Math.max(0, 0.02 - (gridPos - 1) * 0.0045) : (gridPos - 1) * 0.08,
+        lateralOffset: (gridPos % 2 === 0 ? 1.8 : -1.8),
+        speedKmh: 0,
+        totalTime: (gridPos - 1) * 0.45,
+        gapToLeader: (gridPos - 1) * 0.45,
+        interval: gridPos === 1 ? 0 : 0.45,
         lastLapTime: null,
         bestLapTime: null,
         currentLapElapsed: 0,
@@ -958,41 +1814,262 @@ function startRace() {
         pitTimer: 0,
         boxThisLap: false,
         nextTire: startComp === 'S' ? 'M' : 'S',
-        paceMode: 'standard',
-        fuelMode: 'balanced',
-        ersMode: 'deploy',
+        paceMode: sessionType === 'QUALI' ? 'attack' : 'standard',
+        fuelMode: sessionType === 'QUALI' ? 'push' : 'balanced',
+        ersMode: sessionType === 'QUALI' ? 'overtake' : 'deploy',
         ersBattery: 100,
-        fuelRemaining: totalLaps + 0.6,
-        drsActive: false,
-        retired: false
+        fuelRemaining: totalLaps + 1.0,
+        drsActive: false
       });
     });
   });
 
   cars.sort((a, b) => a.pos - b.pos);
+
+  build3DCircuitAndCars(circuit);
+
+  // ドライビングモード時のカメラ＆HUD設定
+  const hud = document.getElementById('drivingHud');
+  const touchEl = document.getElementById('touchControls');
+  if (gameMode === 'drive') {
+    hud.classList.remove('hidden');
+    touchEl.classList.toggle('hidden', controlType !== 'touch');
+    setCameraMode('onboard0');
+  } else {
+    hud.classList.add('hidden');
+    touchEl.classList.add('hidden');
+    if (cameraMode === 'onboard0') setCameraMode('heli0');
+  }
+
   renderCarStrategyCards();
   updateForecastUI();
   updateTimingTower();
 
-  addRadioMsg('RACE CONTROL', `${circuit.name} 決勝レース（${totalLaps}周）がいよいよスタート！レッドシグナル消灯、LIGHTS OUT！`, 'alert');
-  const pCars = cars.filter(c => c.isPlayer);
-  addRadioMsg('ENGINEER', `${pCars[0].code}（${pCars[0].tire}タイヤ）と ${pCars[1].code}（${pCars[1].tire}タイヤ）の2台をピットウォールから指揮します。`, 'engineer');
+  if (sessionType === 'FP') {
+    addRadioMsg('ENGINEER', `🔧 フリー走行(FP)開始！3周走行してコースデータを収集すると開発資金ボーナス(+$5.0M)を獲得できます。`, 'engineer');
+  } else if (sessionType === 'QUALI') {
+    addRadioMsg('ENGINEER', `⏱️ 公式予選(QUALIFYING)開始！ベストラップ順で決勝のスターティンググリッドが決定します！`, 'alert');
+  } else {
+    addRadioMsg('RACE CONTROL', `🚥 ${circuit.name} 決勝レース（${totalLaps}周）スタート！LIGHTS OUT AND AWAY WE GO!`, 'alert');
+  }
 
-  raceActive = true;
-  requestAnimationFrame(gameLoop);
+  setSimSpeed(1);
+  if (!raceActive) {
+    raceActive = true;
+    lastFrameTime = performance.now();
+    requestAnimationFrame(gameLoop);
+  }
 }
 
-// === 天候予報生成 ===
+function advanceToNextSession() {
+  finishSession();
+}
+
+// ==========================================
+// 7. ドライビングモード操作（キーボード / マウス / タッチ）
+// ==========================================
+function setupDrivingControls() {
+  window.addEventListener('keydown', e => {
+    const k = e.key.toLowerCase();
+    if (k === 'w' || e.key === 'ArrowUp') driveInput.gas = true;
+    if (k === 's' || e.key === 'ArrowDown') driveInput.brake = true;
+    if (k === 'a' || e.key === 'ArrowLeft') driveInput.left = true;
+    if (k === 'd' || e.key === 'ArrowRight') driveInput.right = true;
+    if (k === ' ') { driveInput.drs = !driveInput.drs; }
+    if (k === 'e') { driveInput.ers = !driveInput.ers; }
+  });
+
+  window.addEventListener('keyup', e => {
+    const k = e.key.toLowerCase();
+    if (k === 'w' || e.key === 'ArrowUp') driveInput.gas = false;
+    if (k === 's' || e.key === 'ArrowDown') driveInput.brake = false;
+    if (k === 'a' || e.key === 'ArrowLeft') driveInput.left = false;
+    if (k === 'd' || e.key === 'ArrowRight') driveInput.right = false;
+  });
+
+  // マウスステアリング＆クリック加減速
+  const stage = document.getElementById('viewportStage');
+  stage.addEventListener('mousemove', e => {
+    if (gameMode !== 'drive' || controlType !== 'mouse') return;
+    const rect = stage.getBoundingClientRect();
+    const normX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    driveInput.mouseSteer = Math.max(-1, Math.min(1, normX * 1.5));
+  });
+  stage.addEventListener('mousedown', e => {
+    if (gameMode !== 'drive' || controlType !== 'mouse') return;
+    if (e.button === 0) driveInput.gas = true;
+    if (e.button === 2) driveInput.brake = true;
+  });
+  stage.addEventListener('mouseup', e => {
+    if (gameMode !== 'drive' || controlType !== 'mouse') return;
+    if (e.button === 0) driveInput.gas = false;
+    if (e.button === 2) driveInput.brake = false;
+  });
+  stage.addEventListener('contextmenu', e => {
+    if (gameMode === 'drive' && controlType === 'mouse') e.preventDefault();
+  });
+
+  // タッチパッドボタン
+  const bindTouch = (id, prop, isToggle = false) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const start = ev => {
+      ev.preventDefault();
+      if (isToggle) driveInput[prop] = !driveInput[prop];
+      else driveInput[prop] = true;
+      el.classList.add('pressed');
+    };
+    const end = ev => {
+      ev.preventDefault();
+      if (!isToggle) driveInput[prop] = false;
+      el.classList.remove('pressed');
+    };
+    el.addEventListener('touchstart', start);
+    el.addEventListener('touchend', end);
+    el.addEventListener('mousedown', start);
+    el.addEventListener('mouseup', end);
+  };
+  bindTouch('tBtnLeft', 'left');
+  bindTouch('tBtnRight', 'right');
+  bindTouch('tBtnGas', 'gas');
+  bindTouch('tBtnBrake', 'brake');
+  bindTouch('tBtnDrs', 'drs', true);
+}
+
+function toggleDrivingAssist() {
+  drivingAutoSteer = !drivingAutoSteer;
+  document.getElementById('assistTxt').textContent = drivingAutoSteer ? 'ON' : 'OFF';
+}
+
+function updateHumanDrivingCar(car, simDt, circuit) {
+  if (!trackCurve3D) return;
+  const t = ((car.lapProgress % 1) + 1) % 1;
+  const tAhead = (t + 0.015) % 1;
+  const tanNow = trackCurve3D.getTangentAt(t);
+  const tanAhead = trackCurve3D.getTangentAt(tAhead);
+
+  // コーナー曲率（0:ストレート 〜 大きいほど急コーナー）
+  const crossY = tanNow.x * tanAhead.z - tanNow.z * tanAhead.x;
+  const curvature = Math.abs(crossY) * 12;
+
+  // 最高速・コーナー限界速度の算出
+  const tireGrip = (car.tireWear > 30 ? 1.0 : 0.78) * (TIRES[car.tire].code === 'S' ? 1.05 : 1.0);
+  const drsBoost = (car.drsActive || driveInput.drs) && curvature < 0.35 ? 18 : 0;
+  const ersBoost = (driveInput.ers || car.ersMode === 'overtake') && car.ersBattery > 2 ? 15 : 0;
+  const maxStraightKmh = 315 + (car.carPerf - 95) * 3 + drsBoost + ersBoost;
+  const cornerLimitKmh = Math.max(95, (295 - curvature * 195) * tireGrip);
+
+  // アクセル・ブレーキ加減速
+  if (driveInput.gas) {
+    car.speedKmh = Math.min(maxStraightKmh, car.speedKmh + 115 * simDt);
+  } else if (driveInput.brake) {
+    car.speedKmh = Math.max(60, car.speedKmh - 240 * simDt);
+  } else {
+    // エンジンブレーキ自然減速
+    car.speedKmh = Math.max(75, car.speedKmh - 55 * simDt);
+  }
+
+  // ステアリングとコーナー遠心力による横移動
+  let steerVal = 0;
+  if (controlType === 'mouse') steerVal = driveInput.mouseSteer;
+  else {
+    if (driveInput.left) steerVal -= 1;
+    if (driveInput.right) steerVal += 1;
+  }
+
+  if (drivingAutoSteer) {
+    // 自動ステア補助ONならレコードラインへ穏やかに戻す
+    car.lateralOffset *= (1 - 2.0 * simDt);
+  } else {
+    const centrifugalDrift = crossY * (car.speedKmh / 140) * 18 * simDt;
+    car.lateralOffset += (steerVal * 9.5 * simDt) + centrifugalDrift;
+  }
+
+  // オーバースピードまたはコース幅(±6.5m)逸脱時のグラベル減速
+  if (car.speedKmh > cornerLimitKmh * 1.15) {
+    car.speedKmh -= 95 * simDt;
+  }
+  if (Math.abs(car.lateralOffset) > 6.4) {
+    car.lateralOffset = Math.sign(car.lateralOffset) * 6.8;
+    car.speedKmh = Math.max(80, car.speedKmh - 130 * simDt);
+  }
+
+  // 速度(km/h)から周回進行率(progressDelta)への変換
+  const avgSpeedKmh = 225;
+  const speedRatio = car.speedKmh / avgSpeedKmh;
+  const progressDelta = (simDt / circuit.baseLapTime) * speedRatio;
+
+  car.lapProgress += progressDelta;
+  car.totalTime += simDt;
+  car.currentLapElapsed += simDt;
+
+  // タイヤ摩耗＆ERS消費
+  const wearPerLap = TIRES[car.tire].wearRate * circuit.tireWearMult * (1 - (car.chassisLv - 1) * 0.07);
+  car.tireWear = Math.max(0, car.tireWear - wearPerLap * progressDelta);
+  const ersDelta = (driveInput.ers || car.ersMode === 'overtake') ? -22 : +8;
+  car.ersBattery = Math.max(0, Math.min(100, car.ersBattery + ersDelta * progressDelta));
+  car.fuelRemaining = Math.max(0, car.fuelRemaining - progressDelta);
+
+  // ドライビングHUD更新
+  updateDrivingHUD(car);
+
+  // P2P同期送信
+  sendP2PData({
+    type: 'DRIVE_SYNC',
+    code: car.code,
+    lap: car.lap,
+    lapProgress: car.lapProgress,
+    lateralOffset: car.lateralOffset,
+    speedKmh: car.speedKmh
+  });
+}
+
+function updateDrivingHUD(car) {
+  const spd = Math.round(car.speedKmh || 0);
+  document.getElementById('hudSpeed').textContent = spd;
+  const gear = spd < 5 ? 'N' : Math.min(8, Math.max(1, Math.floor(spd / 38) + 1));
+  document.getElementById('hudGear').textContent = gear;
+  document.getElementById('hudDrsState').textContent = (car.drsActive || driveInput.drs) ? 'OPEN' : 'CLOSED';
+  document.getElementById('hudDrsState').style.color = (car.drsActive || driveInput.drs) ? 'var(--green)' : 'var(--text-sub)';
+  document.getElementById('hudErsState').textContent = `${Math.round(car.ersBattery)}%`;
+
+  const leds = document.querySelectorAll('#rpmLights .rpm-led');
+  const activeCount = Math.min(leds.length, Math.floor(((spd % 42) / 42) * leds.length));
+  leds.forEach((led, idx) => {
+    if (idx < activeCount) {
+      led.style.background = idx < 3 ? '#00e676' : (idx < 6 ? '#ff2a2a' : '#b138ff');
+    } else {
+      led.style.background = '#252c3d';
+    }
+  });
+}
+
+// ==========================================
+// 8. 天候・雨雲レーダー & シミュレーションループ
+// ==========================================
 function generateWeatherForecast(circuit) {
   weatherForecast = [];
   let state = 'DRY';
   for (let l = 1; l <= circuit.laps + 6; l++) {
-    if (l > 3 && Math.random() < circuit.rainChance * 0.14) {
+    if (l > 2 && Math.random() < circuit.rainChance * 0.16) {
       if (state === 'DRY') state = 'LIGHT_RAIN';
       else if (state === 'LIGHT_RAIN') state = Math.random() < 0.5 ? 'HEAVY_RAIN' : 'DRY';
       else state = 'LIGHT_RAIN';
     }
     weatherForecast.push(state);
+  }
+
+  // 雨雲レーダー用の雲セル生成
+  rainClouds = [];
+  for (let i = 0; i < 7; i++) {
+    rainClouds.push({
+      x: Math.random(),
+      y: Math.random(),
+      r: 0.14 + Math.random() * 0.16,
+      vx: 0.018 + Math.random() * 0.015,
+      vy: -0.008 + Math.random() * 0.016,
+      intensity: Math.random() < circuit.rainChance ? (0.45 + Math.random() * 0.5) : 0.15
+    });
   }
 }
 
@@ -1002,10 +2079,10 @@ function updateForecastUI() {
   for (let i = 0; i < 5; i++) {
     const targetLap = Math.min(totalLaps, currentLap + i);
     const w = weatherForecast[targetLap - 1] || 'DRY';
-    const icon = w === 'DRY' ? '☀️ ドライ' : (w === 'LIGHT_RAIN' ? '🌦️ 小雨 (INTER圏)' : '🌧️ 豪雨 (WET圏)');
+    const icon = w === 'DRY' ? '☀️ ドライ' : (w === 'LIGHT_RAIN' ? '🌦️ 小雨 (INTER)' : '🌧️ 本降り (WET)');
     html += `
       <div class="forecast-item">
-        <div style="color:var(--text-sub); font-weight:700;">${i === 0 ? '現在 (LAP '+targetLap+')' : 'LAP ' + targetLap}</div>
+        <div style="color:var(--text-sub); font-weight:700;">${i === 0 ? '現在 (L'+targetLap+')' : 'LAP ' + targetLap}</div>
         <div style="font-weight:800; margin-top:2px;">${icon}</div>
       </div>
     `;
@@ -1013,146 +2090,13 @@ function updateForecastUI() {
   strip.innerHTML = html;
 }
 
-// === 自チーム2台のUI描画 ===
-function renderCarStrategyCards() {
-  const pCars = cars.filter(c => c.isPlayer).sort((a, b) => a.playerSlot - b.playerSlot);
-  pCars.forEach((car, idx) => {
-    const container = document.getElementById(`carPanel${idx}`);
-    const wearColor = car.tireWear > 60 ? 'var(--green)' : (car.tireWear > 30 ? 'var(--yellow)' : 'var(--f1-red)');
-    const ersColor = car.ersBattery > 35 ? '#00b0ff' : 'var(--yellow)';
-    const fuelDelta = (car.fuelRemaining - (totalLaps - car.lap + 1)).toFixed(1);
-
-    container.innerHTML = `
-      <div class="car-header">
-        <div class="car-title">
-          <span class="team-bar" style="background:${car.color}; height:20px;"></span>
-          <span>P${car.pos} | ${car.code}</span>
-          <span style="font-size:0.8rem; color:var(--text-sub); font-weight:600;">${car.name}</span>
-        </div>
-        <div style="display:flex; align-items:center; gap:8px;">
-          ${car.drsActive ? '<span class="drs-tag">DRS ON</span>' : ''}
-          <span class="tire-icon tire-${car.tire}">${car.tire}</span>
-          <span style="font-size:0.78rem; font-weight:700;">${car.tireAge}L</span>
-        </div>
-      </div>
-
-      <div class="car-body">
-        <div class="telemetry-grid">
-          <div class="tele-box">
-            <div class="tele-label"><span>タイヤ残量</span><span>${Math.round(car.tireTemp)}°C</span></div>
-            <div class="tele-val" id="wearVal_${car.code}">${Math.round(car.tireWear)}%</div>
-            <div class="bar-bg"><div class="bar-fill" id="wearBar_${car.code}" style="width:${car.tireWear}%; background:${wearColor};"></div></div>
-          </div>
-          <div class="tele-box">
-            <div class="tele-label"><span>ERSバッテリー</span><span>${car.ersMode.toUpperCase()}</span></div>
-            <div class="tele-val" id="ersVal_${car.code}">${Math.round(car.ersBattery)}%</div>
-            <div class="bar-bg"><div class="bar-fill" id="ersBar_${car.code}" style="width:${car.ersBattery}%; background:${ersColor};"></div></div>
-          </div>
-          <div class="tele-box">
-            <div class="tele-label"><span>燃料マージン</span><span>残${car.fuelRemaining.toFixed(1)}L</span></div>
-            <div class="tele-val" id="fuelVal_${car.code}" style="color:${fuelDelta >= 0 ? 'var(--green)' : 'var(--f1-red)'};">
-              ${fuelDelta >= 0 ? '+' + fuelDelta : fuelDelta} 周分
-            </div>
-            <div class="bar-bg"><div class="bar-fill" style="width:${Math.min(100, (car.fuelRemaining/totalLaps)*100)}%; background:#a0aec0;"></div></div>
-          </div>
-        </div>
-
-        <div class="control-group">
-          <div class="control-label">タイヤペース (PACE MODE)</div>
-          <div class="btn-row">
-            ${PACE_MODES.map(m => `
-              <button class="strat-btn ${car.paceMode === m.id ? (m.id === 'attack' ? 'active-push' : (m.id === 'conserve' ? 'active-save' : 'active')) : ''}"
-                onclick="setCarMode('${car.code}', 'paceMode', '${m.id}')">${m.label}</button>
-            `).join('')}
-          </div>
-        </div>
-
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-          <div class="control-group">
-            <div class="control-label">ERS展開 (BATTERY)</div>
-            <div class="btn-row three-col">
-              ${ERS_MODES.map(m => `
-                <button class="strat-btn ${car.ersMode === m.id ? 'active' : ''}"
-                  onclick="setCarMode('${car.code}', 'ersMode', '${m.id}')">${m.label}</button>
-              `).join('')}
-            </div>
-          </div>
-          <div class="control-group">
-            <div class="control-label">燃料モード (FUEL MIX)</div>
-            <div class="btn-row three-col">
-              ${FUEL_MODES.map(m => `
-                <button class="strat-btn ${car.fuelMode === m.id ? 'active' : ''}"
-                  onclick="setCarMode('${car.code}', 'fuelMode', '${m.id}')">${m.label}</button>
-              `).join('')}
-            </div>
-          </div>
-        </div>
-
-        <div class="pit-controls">
-          <div style="flex:1.3;">
-            <div class="control-label" style="margin-bottom:3px;">次ピット装着タイヤ</div>
-            <div class="btn-row five-col">
-              ${['S','M','H','I','W'].map(t => `
-                <button class="strat-btn ${car.nextTire === t ? 'active' : ''}"
-                  onclick="setCarMode('${car.code}', 'nextTire', '${t}')">
-                  <span style="color:var(--${t==='S'?'soft':t==='M'?'med':t==='H'?'hard':t==='I'?'inter':'wet'}); font-weight:900;">${t}</span>
-                </button>
-              `).join('')}
-            </div>
-          </div>
-          <button class="box-btn ${car.boxThisLap ? 'active' : ''}" onclick="toggleBox('${car.code}')">
-            ${car.boxThisLap ? '🔧 BOX THIS LAP (キャンセル)' : '📢 BOX THIS LAP (ピット指示)'}
-          </button>
-        </div>
-      </div>
-    `;
-  });
-}
-
-function setCarMode(code, prop, val) {
-  const car = cars.find(c => c.code === code);
-  if (!car) return;
-  car[prop] = val;
-  renderCarStrategyCards();
-}
-
-function toggleBox(code) {
-  const car = cars.find(c => c.code === code);
-  if (!car) return;
-  car.boxThisLap = !car.boxThisLap;
-  if (car.boxThisLap) {
-    addRadioMsg(car.code, `了解、この周の終わりにピットインする。(${car.nextTire}タイヤ準備)`, 'engineer');
-  } else {
-    addRadioMsg(car.code, `ステイアウト了解！このまま走行を続ける。`, 'engineer');
-  }
-  renderCarStrategyCards();
-}
-
-function triggerTeamOrder() {
-  const pCars = cars.filter(c => c.isPlayer).sort((a, b) => a.pos - b.pos);
-  if (pCars.length < 2) return;
-  const front = pCars[0];
-  const behind = pCars[1];
-  if (behind.pos - front.pos === 1 && Math.abs(behind.totalTime - front.totalTime) < 2.5) {
-    const tmpTime = front.totalTime;
-    front.totalTime = behind.totalTime + 0.35;
-    behind.totalTime = tmpTime;
-    const tmpProg = front.lapProgress;
-    front.lapProgress = behind.lapProgress + 0.005;
-    behind.lapProgress = tmpProg;
-    addRadioMsg('TEAM ORDER', `${front.code} にチームオーダー発令！後方の ${behind.code} を先行させました。`, 'alert');
-  } else {
-    addRadioMsg('ENGINEER', `チームオーダーを実行するには、自チームの2台が連続した順位（2.5秒以内）で走行している必要があります。`, 'engineer');
-  }
-}
-
-// === シミュレーションループ ===
 let lastFrameTime = performance.now();
 
 function setSimSpeed(spd) {
   simSpeed = spd;
   [0, 1, 2, 4].forEach(s => {
-    document.getElementById(`spd${s}`).classList.toggle('active', s === spd);
+    const btn = document.getElementById(`spd${s}`);
+    if (btn) btn.classList.toggle('active', s === spd);
   });
 }
 
@@ -1161,13 +2105,18 @@ function gameLoop(now) {
   lastFrameTime = now;
 
   if (raceActive && simSpeed > 0) {
-    // 1xで1周あたり約9秒で進行するテンポ設計
     const circuit = CIRCUITS[selectedCircuitIdx];
-    const simDt = Math.min(dtReal, 0.1) * simSpeed * (circuit.baseLapTime / 9.5);
+    const timeScale = (gameMode === 'drive') ? (circuit.baseLapTime / 28.0) : (circuit.baseLapTime / 9.5);
+    const simDt = Math.min(dtReal, 0.1) * simSpeed * timeScale;
     updateSimulation(simDt);
   }
 
-  drawTrackMap();
+  if (cameraMode === '2d' || cameraMode === 'radar') {
+    drawTrackMap2D();
+  } else {
+    update3DScene();
+  }
+
   if (raceActive) {
     requestAnimationFrame(gameLoop);
   }
@@ -1176,10 +2125,16 @@ function gameLoop(now) {
 function updateSimulation(simDt) {
   const circuit = CIRCUITS[selectedCircuitIdx];
 
-  // 天候による路面水量の推移
+  // 雨雲セルの移動更新
+  rainClouds.forEach(cl => {
+    cl.x = (cl.x + cl.vx * simDt * 0.08 + 1) % 1;
+    cl.y = (cl.y + cl.vy * simDt * 0.08 + 1) % 1;
+  });
+
+  // 天候による路面水量変化
   const currentWeather = weatherForecast[currentLap - 1] || 'DRY';
   if (currentWeather === 'DRY') {
-    trackWater = Math.max(0, trackWater - simDt * 0.22);
+    trackWater = Math.max(0, trackWater - simDt * 0.25);
   } else if (currentWeather === 'LIGHT_RAIN') {
     trackWater = Math.min(52, trackWater + (38 - trackWater) * 0.03 * simDt + simDt * 0.25);
   } else if (currentWeather === 'HEAVY_RAIN') {
@@ -1187,18 +2142,17 @@ function updateSimulation(simDt) {
   }
 
   document.getElementById('trackWaterTxt').textContent = `${Math.round(trackWater)}%`;
-  const wIcon = trackWater < 15 ? '☀️ DRY' : (trackWater < 55 ? '🌦️ INTER' : '🌧️ WET');
-  document.getElementById('weatherIcon').textContent = wIcon;
+  document.getElementById('weatherIcon').textContent =
+    trackWater < 15 ? '☀️ DRY' : (trackWater < 55 ? '🌦️ INTER' : '🌧️ WET');
 
-  // 各マシンの進行計算
+  // 各マシンの進行更新
   cars.forEach(car => {
-    if (car.retired) return;
-
-    // ピットストップ処理中
+    // ピットストップ中
     if (car.inPit) {
       car.pitTimer -= simDt;
       car.totalTime += simDt;
       car.currentLapElapsed += simDt;
+      car.speedKmh = 60;
       if (car.pitTimer <= 0) {
         car.inPit = false;
         car.tire = car.nextTire;
@@ -1213,29 +2167,33 @@ function updateSimulation(simDt) {
       return;
     }
 
-    // ターゲットラップタイム計算
-    let targetLap = circuit.baseLapTime;
+    // プレイヤー自身が運転している車両の場合
+    if (car.isHumanDriving) {
+      updateHumanDrivingCar(car, simDt, circuit);
+      if (car.lapProgress >= 1.0) {
+        car.lapProgress -= 1.0;
+        completeLapForCar(car);
+      }
+      return;
+    }
 
-    // マシン＆ドライバースキル補正
+    // AI / マネージ指揮車両の計算
+    let targetLap = circuit.baseLapTime;
     targetLap -= (car.carPerf - 95) * 0.25;
     targetLap -= (car.paceSkill - 95) * 0.12;
 
-    // タイヤコンパウンド補正
     const tireInfo = TIRES[car.tire];
     targetLap += tireInfo.paceDelta;
 
-    // タイヤ摩耗ペナルティ（30%以下でクリフ発生）
     if (car.tireWear < 30) {
       targetLap += (30 - car.tireWear) * 0.18;
     } else {
-      targetLap += (100 - car.tireWear) * 0.022;
+      targetLap += (100 - car.tireWear) * 0.02;
     }
 
-    // 路面水量とタイヤのミスマッチペナルティ
+    // 水量ミスマッチ
     if (car.tire === 'S' || car.tire === 'M' || car.tire === 'H') {
-      if (trackWater > 18) {
-        targetLap += (trackWater - 18) * 0.35; // スリックで雨は激遅
-      }
+      if (trackWater > 18) targetLap += (trackWater - 18) * 0.35;
     } else if (car.tire === 'I') {
       if (trackWater < 10) targetLap += (10 - trackWater) * 0.28;
       if (trackWater > 68) targetLap += (trackWater - 68) * 0.22;
@@ -1243,76 +2201,46 @@ function updateSimulation(simDt) {
       if (trackWater < 45) targetLap += (45 - trackWater) * 0.25;
     }
 
-    // ペース・燃料・ERSモード補正
     const pMode = PACE_MODES.find(m => m.id === car.paceMode);
     const fMode = FUEL_MODES.find(m => m.id === car.fuelMode);
     const eMode = ERS_MODES.find(m => m.id === car.ersMode);
 
     targetLap += pMode.paceMod;
-    if (car.fuelRemaining > 0.05) {
-      targetLap += fMode.paceMod;
-    } else {
-      targetLap += 4.5; // ガス欠寸前リンプモード
-    }
+    targetLap += car.fuelRemaining > 0.05 ? fMode.paceMod : 4.0;
+    if (car.ersBattery > 5 && car.ersMode === 'overtake') targetLap += eMode.paceMod;
+    else if (car.ersMode === 'harvest') targetLap += eMode.paceMod;
 
-    if (car.ersBattery > 5 && car.ersMode === 'overtake') {
-      targetLap += eMode.paceMod;
-    } else if (car.ersMode === 'harvest') {
-      targetLap += eMode.paceMod;
-    }
-
-    // DRS恩恵
-    if (car.drsActive && trackWater < 15 && flagState === 'GREEN') {
-      targetLap -= 0.45;
-    }
-
-    // SC / VSC 時のペース制限
+    if (car.drsActive && trackWater < 15 && flagState === 'GREEN') targetLap -= 0.45;
     if (flagState === 'VSC') targetLap = circuit.baseLapTime * 1.32;
     if (flagState === 'SC') targetLap = circuit.baseLapTime * 1.48;
 
-    // 進行率の加算
     const progressDelta = simDt / targetLap;
     car.lapProgress += progressDelta;
     car.totalTime += simDt;
     car.currentLapElapsed += simDt;
+    car.speedKmh = Math.round((circuit.baseLapTime / targetLap) * 235);
 
-    // 摩耗・バッテリー・燃料のリアルタイム変化
-    const flagWearMult = flagState === 'GREEN' ? 1.0 : 0.35;
-    let weatherWearMult = 1.0;
-    if ((car.tire === 'I' || car.tire === 'W') && trackWater < 12) {
-      weatherWearMult = 2.4; // ドライ路面でレインタイヤはすぐ溶ける
-    }
-    const wearPerLap = tireInfo.wearRate * circuit.tireWearMult * pMode.wearMod * flagWearMult * weatherWearMult * (1 - (car.tireSkill - 90) * 0.015);
+    const chassisWearBonus = Math.max(0.65, 1 - (car.chassisLv - 1) * 0.07);
+    const wearPerLap = tireInfo.wearRate * circuit.tireWearMult * pMode.wearMod * chassisWearBonus;
     car.tireWear = Math.max(0, car.tireWear - wearPerLap * progressDelta);
 
-    // タイヤ温度推移
-    const targetTemp = tireInfo.optTemp + pMode.tempMod + (car.drsActive ? 3 : 0);
-    car.tireTemp += (targetTemp - car.tireTemp) * 0.08 * simDt;
-
-    // ERSバッテリー推移
     car.ersBattery = Math.max(0, Math.min(100, car.ersBattery + eMode.ersDelta * progressDelta));
     if (car.ersBattery <= 1 && car.ersMode === 'overtake') {
       car.ersMode = 'deploy';
       if (car.isPlayer) renderCarStrategyCards();
     }
+    car.fuelRemaining = Math.max(0, car.fuelRemaining - fMode.fuelRate * progressDelta);
 
-    // 燃料消費
-    const fuelRate = flagState === 'GREEN' ? fMode.fuelRate : 0.45;
-    car.fuelRemaining = Math.max(0, car.fuelRemaining - fuelRate * progressDelta);
-
-    // 1周完了判定
     if (car.lapProgress >= 1.0) {
       car.lapProgress -= 1.0;
       completeLapForCar(car);
     }
   });
 
-  // 順位・ギャップ・オーバーテイク判定
   updatePositionsAndBattles(simDt);
   updateLiveTelemetryNumbers();
 }
 
-// === 周回完了処理 ===
 function completeLapForCar(car) {
   const circuit = CIRCUITS[selectedCircuitIdx];
   car.tireAge += 1;
@@ -1322,15 +2250,14 @@ function completeLapForCar(car) {
   if (!car.bestLapTime || car.lastLapTime < car.bestLapTime) {
     car.bestLapTime = car.lastLapTime;
   }
-  if (car.lastLapTime < fastestLap.time && flagState === 'GREEN' && car.lap > 1) {
+  if (car.lastLapTime < fastestLap.time && flagState === 'GREEN') {
     fastestLap = { driver: car.code, time: car.lastLapTime };
-    document.getElementById('flHolderTxt').textContent = `FL: ${car.code} (${formatLapTime(car.lastLapTime)})`;
+    document.getElementById('flHolderTxt').textContent = `BEST: ${car.code} (${formatLapTime(car.lastLapTime)})`;
   }
 
-  // 先頭車両が新ラップに入ったタイミング
   if (car.pos === 1) {
     if (car.lap >= totalLaps) {
-      finishRace();
+      finishSession();
       return;
     }
     currentLap = car.lap + 1;
@@ -1341,100 +2268,47 @@ function completeLapForCar(car) {
 
   car.lap += 1;
 
-  // AIのピット戦略判断
-  if (!car.isPlayer && car.lap < totalLaps) {
+  if (!car.isPlayer && !car.isFriend && currentSession === 'RACE' && car.lap < totalLaps) {
     evaluateAIPitStrategy(car);
   }
 
-  // ピットイン実行
   if (car.boxThisLap && car.lap <= totalLaps) {
     car.boxThisLap = false;
     car.inPit = true;
-    const baseLoss = flagState === 'GREEN' ? circuit.pitLoss : circuit.pitLoss * 0.55;
-    // ダブルスタック（チームメイトが既にピット作業中）のタイムロス加算
+    const baseLoss = (flagState === 'GREEN' ? circuit.pitLoss : circuit.pitLoss * 0.55) - (car.pitCrewLv - 1) * 0.8;
     const teammateInPit = cars.some(c => c.id !== car.id && c.teamName === car.teamName && c.inPit);
-    const doubleStackPenalty = teammateInPit ? 5.5 : 0;
-    car.pitTimer = baseLoss + doubleStackPenalty + (Math.random() * 0.6 - 0.2);
+    car.pitTimer = Math.max(10, baseLoss + (teammateInPit ? 5.0 : 0));
 
     if (car.isPlayer) {
-      if (teammateInPit) {
-        addRadioMsg('PIT CREW', `⚠️ ${car.code} がダブルスタックでピットイン！約5.5秒の待ち時間が発生します！`, 'danger');
-      } else {
-        addRadioMsg('PIT CREW', `🔧 ${car.code} ピットイン！${car.nextTire}タイヤへ交換中...`, 'engineer');
-      }
+      addRadioMsg('PIT CREW', `🔧 ${car.code} ピットイン！${car.nextTire}タイヤへ交換中 (R&D短縮効果: -${((car.pitCrewLv-1)*0.8).toFixed(1)}s)`, 'engineer');
       renderCarStrategyCards();
     }
   }
 
-  // プレイヤーへのエンジニア助言
   if (car.isPlayer) {
-    if (Math.round(car.tireWear) === 32 || Math.round(car.tireWear) === 25) {
-      addRadioMsg(car.code, `タイヤのグリップが厳しくなってきた！（残量 ${Math.round(car.tireWear)}%）そろそろBOXを検討してくれ。`, 'alert');
-    }
     checkMandatoryTireStatus();
     renderCarStrategyCards();
   }
-
   updateTimingTower();
 }
 
-// === AIのピット＆ペース判断 ===
 function evaluateAIPitStrategy(car) {
   const lapsRemaining = totalLaps - car.lap;
   if (lapsRemaining <= 1) return;
-
-  // 雨量に応じたタイヤ選択
-  if (trackWater >= 58 && car.tire !== 'W') {
-    car.nextTire = 'W';
-    car.boxThisLap = true;
-    return;
-  }
-  if (trackWater >= 20 && trackWater < 58 && car.tire !== 'I') {
-    car.nextTire = 'I';
-    car.boxThisLap = true;
-    return;
-  }
-  if (trackWater < 14 && (car.tire === 'I' || car.tire === 'W')) {
-    car.nextTire = lapsRemaining <= 9 ? 'S' : 'M';
-    car.boxThisLap = true;
-    return;
-  }
-
-  // ドライ時の摩耗・義務ピット判断
-  const cheapStopBonus = (flagState !== 'GREEN') ? 14 : 0;
-  if (car.tireWear < (32 + cheapStopBonus)) {
-    if (lapsRemaining <= 9 && car.usedCompounds.length >= 1 && car.tire !== 'S') {
-      car.nextTire = 'S';
-    } else if (!car.usedCompounds.includes('M')) {
-      car.nextTire = 'M';
-    } else if (!car.usedCompounds.includes('H')) {
-      car.nextTire = 'H';
-    } else {
-      car.nextTire = 'S';
-    }
+  if (trackWater >= 58 && car.tire !== 'W') { car.nextTire = 'W'; car.boxThisLap = true; return; }
+  if (trackWater >= 20 && trackWater < 58 && car.tire !== 'I') { car.nextTire = 'I'; car.boxThisLap = true; return; }
+  if (trackWater < 14 && (car.tire === 'I' || car.tire === 'W')) { car.nextTire = 'S'; car.boxThisLap = true; return; }
+  if (car.tireWear < 32) {
+    car.nextTire = !car.usedCompounds.includes('M') ? 'M' : (!car.usedCompounds.includes('H') ? 'H' : 'S');
     car.boxThisLap = true;
   } else if (lapsRemaining === 2 && !car.wetUsed && new Set(car.usedCompounds).size < 2) {
-    // 義務未消化なら必ずピット
     car.nextTire = car.tire === 'S' ? 'M' : 'S';
     car.boxThisLap = true;
   }
 }
 
-// === ラップごとのイベント（天候アナウンス・SC/VSC判定） ===
 function handleLapEvents() {
-  // 2周先の天候変化を事前通知
-  const futureLap = currentLap + 2;
-  if (futureLap <= totalLaps) {
-    const nowW = weatherForecast[currentLap - 1];
-    const futW = weatherForecast[futureLap - 1];
-    if (nowW === 'DRY' && futW !== 'DRY') {
-      addRadioMsg('WEATHER RADAR', `🌧️ 気象レーダー警告：あと約2周（LAP ${futureLap}付近）で雨が降り始めます！インターミディエイトの準備を！`, 'alert');
-    } else if (nowW !== 'DRY' && futW === 'DRY') {
-      addRadioMsg('WEATHER RADAR', `☀️ 気象レーダー情報：まもなく雨が止み、路面が乾き始めます。スリックへのクロスオーバーに備えてください。`, 'engineer');
-    }
-  }
-
-  // SC / VSC カウントダウンまたは発生
+  if (currentSession !== 'RACE') return;
   if (flagState !== 'GREEN') {
     flagLapsLeft -= 1;
     if (flagLapsLeft <= 0) {
@@ -1442,46 +2316,35 @@ function handleLapEvents() {
       updateFlagUI();
       addRadioMsg('RACE CONTROL', `🟢 GREEN FLAG！レース再開！`, 'alert');
     }
-  } else if (currentLap > 2 && currentLap < totalLaps - 2) {
-    // ランダムまたは摩耗過多によるVSC/SC発生
-    const wornCars = cars.filter(c => c.tireWear < 15).length;
-    const scProb = 0.06 + wornCars * 0.05;
-    if (Math.random() < scProb) {
-      flagState = Math.random() < 0.55 ? 'VSC' : 'SC';
-      flagLapsLeft = 2;
-      updateFlagUI();
-      addRadioMsg('RACE CONTROL', `⚠️ ${flagState} 導入！コース上のデブリ回収のためスローダウン。ピットロスタイムが大幅に短縮されます（フリーストップのチャンス）！`, 'danger');
-    }
+  } else if (currentLap > 2 && currentLap < totalLaps - 2 && Math.random() < 0.08) {
+    flagState = Math.random() < 0.55 ? 'VSC' : 'SC';
+    flagLapsLeft = 2;
+    updateFlagUI();
+    addRadioMsg('RACE CONTROL', `⚠️ ${flagState} 発令！ピットロスタイムが大幅短縮されます！`, 'danger');
   }
 }
 
 function updateFlagUI() {
   const badge = document.getElementById('flagBadge');
   badge.className = 'flag-badge';
-  if (flagState === 'GREEN') {
-    badge.classList.add('flag-green');
-    badge.textContent = 'GREEN FLAG';
-  } else if (flagState === 'VSC') {
-    badge.classList.add('flag-vsc');
-    badge.textContent = 'VIRTUAL SAFETY CAR';
-  } else {
-    badge.classList.add('flag-sc');
-    badge.textContent = 'SAFETY CAR DEPLOYED';
-  }
+  if (flagState === 'GREEN') { badge.classList.add('flag-green'); badge.textContent = 'GREEN FLAG'; }
+  else if (flagState === 'VSC') { badge.classList.add('flag-vsc'); badge.textContent = 'VIRTUAL SAFETY CAR'; }
+  else { badge.classList.add('flag-sc'); badge.textContent = 'SAFETY CAR'; }
 }
 
-// === オーバーテイク・ギャップ計算 ===
 function updatePositionsAndBattles(simDt) {
   const circuit = CIRCUITS[selectedCircuitIdx];
 
-  // 走行距離順（周回 + lapProgress）でソート
-  cars.sort((a, b) => (b.lap + b.lapProgress) - (a.lap + a.lapProgress));
+  if (currentSession === 'QUALI' || currentSession === 'FP') {
+    cars.sort((a, b) => (a.bestLapTime || 9999) - (b.bestLapTime || 9999));
+    cars.forEach((c, i) => { c.pos = i + 1; });
+    return;
+  }
 
-  const leader = cars[0];
+  cars.sort((a, b) => (b.lap + b.lapProgress) - (a.lap + a.lapProgress));
   for (let i = 0; i < cars.length; i++) {
     const car = cars[i];
     car.pos = i + 1;
-
     if (i === 0) {
       car.gapToLeader = 0;
       car.interval = 0;
@@ -1489,37 +2352,226 @@ function updatePositionsAndBattles(simDt) {
     } else {
       const ahead = cars[i - 1];
       const distDiff = (ahead.lap + ahead.lapProgress) - (car.lap + car.lapProgress);
-      let gapSec = Math.max(0.05, distDiff * circuit.baseLapTime);
-
-      // SC中は隊列が圧縮される
-      if (flagState === 'SC' && gapSec > 0.6 && !car.inPit) {
-        car.lapProgress += 0.015 * simDt;
-        gapSec = Math.max(0.5, gapSec - simDt * 0.8);
-      }
-
+      const gapSec = Math.max(0.05, distDiff * circuit.baseLapTime);
       car.interval = gapSec;
       car.gapToLeader = ahead.gapToLeader + gapSec;
       car.drsActive = (gapSec <= 1.0 && trackWater < 15 && flagState === 'GREEN' && car.lap >= 2);
-
-      // ダーティエア＆オーバーテイク難易度処理
-      if (gapSec < 0.45 && flagState === 'GREEN' && !ahead.inPit && !car.inPit) {
-        const attackScore = (car.overtakeSkill * 0.4) + (car.drsActive ? 18 : 0) + (car.ersMode === 'overtake' ? 15 : 0) + (car.tireWear - ahead.tireWear) * 0.35;
-        const defenseScore = (ahead.overtakeSkill * 0.4) + (ahead.ersMode === 'overtake' ? 15 : 0) + (circuit.overtakeDiff * 28);
-
-        if (attackScore < defenseScore && car.lap + car.lapProgress > ahead.lap + ahead.lapProgress - 0.002) {
-          // オーバーテイク失敗（前車に詰まる）
-          car.lapProgress = ahead.lapProgress - 0.0035;
-          if (car.lapProgress < 0) {
-            car.lap -= 1;
-            car.lapProgress += 1.0;
-          }
-        }
-      }
     }
   }
 }
 
-// === ライブタイミング＆数値の高速更新 ===
+// ==========================================
+// 9. 2Dマップ & 雨雲レーダー Canvas描画
+// ==========================================
+function buildSmoothTrack(pts) {
+  smoothTrackPoints = [];
+  const steps = 25;
+  const n = pts.length;
+  for (let i = 0; i < n; i++) {
+    const p0 = pts[(i - 1 + n) % n];
+    const p1 = pts[i];
+    const p2 = pts[(i + 1) % n];
+    const p3 = pts[(i + 2) % n];
+    for (let s = 0; s < steps; s++) {
+      const t = s / steps, t2 = t * t, t3 = t2 * t;
+      const x = 0.5 * ((2*p1[0]) + (-p0[0]+p2[0])*t + (2*p0[0]-5*p1[0]+4*p2[0]-p3[0])*t2 + (-p0[0]+3*p1[0]-3*p2[0]+p3[0])*t3);
+      const y = 0.5 * ((2*p1[1]) + (-p0[1]+p2[1])*t + (2*p0[1]-5*p1[1]+4*p2[1]-p3[1])*t2 + (-p0[1]+3*p1[1]-3*p2[1]+p3[1])*t3);
+      smoothTrackPoints.push([x, y]);
+    }
+  }
+}
+
+function drawTrackMap2D() {
+  const canvas = document.getElementById('trackCanvas2D');
+  if (!canvas || smoothTrackPoints.length === 0) return;
+  const rect = canvas.parentElement.getBoundingClientRect();
+  if (canvas.width !== rect.width || canvas.height !== rect.height) {
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+  }
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+
+  // 雨雲レーダーモード時は気象グリッドと雨雲セルを描画
+  if (cameraMode === 'radar') {
+    ctx.strokeStyle = 'rgba(0, 230, 118, 0.14)';
+    ctx.lineWidth = 1;
+    for (let gx = 0; gx < w; gx += 45) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, h); ctx.stroke(); }
+    for (let gy = 0; gy < h; gy += 45) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(w, gy); ctx.stroke(); }
+
+    rainClouds.forEach(cl => {
+      const cx = cl.x * w, cy = cl.y * h, rad = cl.r * Math.min(w, h);
+      const grad = ctx.createRadialGradient(cx, cy, rad * 0.1, cx, cy, rad);
+      const alpha = Math.min(0.75, cl.intensity * (0.4 + trackWater / 90));
+      grad.addColorStop(0, `rgba(0, 140, 255, ${alpha})`);
+      grad.addColorStop(0.6, `rgba(0, 220, 180, ${alpha * 0.55})`);
+      grad.addColorStop(1, 'rgba(0, 100, 255, 0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(cx, cy, rad, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  }
+
+  // トラック描画
+  ctx.beginPath();
+  smoothTrackPoints.forEach((pt, idx) => {
+    if (idx === 0) ctx.moveTo(pt[0] * w, pt[1] * h);
+    else ctx.lineTo(pt[0] * w, pt[1] * h);
+  });
+  ctx.closePath();
+  ctx.lineWidth = 14;
+  ctx.strokeStyle = '#2d3548';
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+
+  ctx.lineWidth = 8;
+  ctx.strokeStyle = flagState === 'GREEN' ? '#11151f' : '#5c4d00';
+  ctx.stroke();
+
+  const sf = smoothTrackPoints[0];
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(sf[0] * w - 6, sf[1] * h - 10, 12, 20);
+
+  // 車両ドット描画
+  [...cars].reverse().forEach(car => {
+    const idx = Math.floor(((car.lapProgress % 1) + 1) % 1 * smoothTrackPoints.length);
+    const pt = smoothTrackPoints[Math.max(0, Math.min(smoothTrackPoints.length - 1, idx))];
+    const cx = pt[0] * w, cy = pt[1] * h;
+
+    if (car.isPlayer) {
+      ctx.beginPath();
+      ctx.arc(cx, cy, 11, 0, Math.PI * 2);
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+    ctx.beginPath();
+    ctx.arc(cx, cy, car.isPlayer ? 7 : 5.5, 0, Math.PI * 2);
+    ctx.fillStyle = car.color;
+    ctx.fill();
+    ctx.font = car.isPlayer ? 'bold 11px sans-serif' : '600 10px sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(car.code, cx + 9, cy + 4);
+  });
+}
+
+// ==========================================
+// 10. UI更新・ストラテジー操作・リザルト処理
+// ==========================================
+function renderCarStrategyCards() {
+  const pCars = cars.filter(c => c.isPlayer).sort((a, b) => a.playerSlot - b.playerSlot);
+  pCars.forEach((car, idx) => {
+    const container = document.getElementById(`carPanel${idx}`);
+    if (!container) return;
+    const wearColor = car.tireWear > 60 ? 'var(--green)' : (car.tireWear > 30 ? 'var(--yellow)' : 'var(--f1-red)');
+    const fuelDelta = (car.fuelRemaining - (totalLaps - car.lap + 1)).toFixed(1);
+
+    container.innerHTML = `
+      <div class="car-header">
+        <div style="display:flex; align-items:center; gap:6px; font-weight:900; font-size:0.9rem;">
+          <span style="width:4px; height:18px; background:${car.color}; border-radius:2px;"></span>
+          <span>P${car.pos} | ${car.code}</span>
+          <span style="font-size:0.75rem; color:var(--text-sub);">${car.isHumanDriving ? '🎮 運転中' : '👔 AI/指揮'}</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <button class="cam-btn" style="padding:2px 6px;" onclick="setCameraMode('onboard${idx}')">🎥 視点</button>
+          <span class="tire-icon tire-${car.tire}">${car.tire}</span>
+          <span style="font-size:0.75rem; font-weight:700;">${car.tireAge}L</span>
+        </div>
+      </div>
+
+      <div class="car-body">
+        <div class="telemetry-grid">
+          <div class="tele-box">
+            <div class="tele-label"><span>タイヤ残量</span><span>${Math.round(car.tireTemp)}°C</span></div>
+            <div class="tele-val" id="wearVal_${car.code}">${Math.round(car.tireWear)}%</div>
+            <div class="bar-bg"><div class="bar-fill" id="wearBar_${car.code}" style="width:${car.tireWear}%; background:${wearColor};"></div></div>
+          </div>
+          <div class="tele-box">
+            <div class="tele-label"><span>ERS残量</span><span>${car.ersMode.toUpperCase()}</span></div>
+            <div class="tele-val" id="ersVal_${car.code}">${Math.round(car.ersBattery)}%</div>
+            <div class="bar-bg"><div class="bar-fill" id="ersBar_${car.code}" style="width:${car.ersBattery}%; background:var(--blue);"></div></div>
+          </div>
+          <div class="tele-box">
+            <div class="tele-label"><span>燃料</span><span>残${car.fuelRemaining.toFixed(1)}L</span></div>
+            <div class="tele-val" style="color:${fuelDelta >= 0 ? 'var(--green)' : 'var(--f1-red)'};">${fuelDelta >= 0 ? '+'+fuelDelta : fuelDelta}L</div>
+            <div class="bar-bg"><div class="bar-fill" style="width:${Math.min(100, (car.fuelRemaining/totalLaps)*100)}%; background:#a0aec0;"></div></div>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          ${PACE_MODES.map(m => `
+            <button class="strat-btn ${car.paceMode === m.id ? (m.id === 'attack' ? 'active-push' : (m.id === 'conserve' ? 'active-save' : 'active')) : ''}"
+              onclick="setCarMode('${car.code}', 'paceMode', '${m.id}')">${m.label}</button>
+          `).join('')}
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+          <div class="btn-row three-col">
+            ${ERS_MODES.map(m => `
+              <button class="strat-btn ${car.ersMode === m.id ? 'active' : ''}"
+                onclick="setCarMode('${car.code}', 'ersMode', '${m.id}')">${m.label}</button>
+            `).join('')}
+          </div>
+          <div class="btn-row three-col">
+            ${FUEL_MODES.map(m => `
+              <button class="strat-btn ${car.fuelMode === m.id ? 'active' : ''}"
+                onclick="setCarMode('${car.code}', 'fuelMode', '${m.id}')">${m.label}</button>
+            `).join('')}
+          </div>
+        </div>
+
+        <div style="display:flex; gap:6px; align-items:center; padding-top:4px; border-top:1px solid #22293a;">
+          <div class="btn-row five-col" style="flex:1.2;">
+            ${['S','M','H','I','W'].map(t => `
+              <button class="strat-btn ${car.nextTire === t ? 'active' : ''}"
+                onclick="setCarMode('${car.code}', 'nextTire', '${t}')">
+                <span style="color:var(--${t==='S'?'soft':t==='M'?'med':t==='H'?'hard':t==='I'?'inter':'wet'}); font-weight:900;">${t}</span>
+              </button>
+            `).join('')}
+          </div>
+          <button class="box-btn ${car.boxThisLap ? 'active' : ''}" onclick="toggleBox('${car.code}')">
+            ${car.boxThisLap ? '🔧 BOX指示中' : '📢 BOX THIS LAP'}
+          </button>
+        </div>
+      </div>
+    `;
+  });
+}
+
+function setCarMode(code, prop, val) {
+  const car = cars.find(c => c.code === code);
+  if (!car) return;
+  car[prop] = val;
+  sendP2PData({ type: 'STRAT_CMD', code, prop, val });
+  renderCarStrategyCards();
+}
+
+function toggleBox(code) {
+  const car = cars.find(c => c.code === code);
+  if (!car) return;
+  car.boxThisLap = !car.boxThisLap;
+  sendP2PData({ type: 'STRAT_CMD', code, prop: 'boxThisLap', val: car.boxThisLap });
+  addRadioMsg(car.code, car.boxThisLap ? `了解、この周にBOXする (${car.nextTire}準備)` : `ステイアウト了解！`, 'engineer');
+  renderCarStrategyCards();
+}
+
+function triggerTeamOrder() {
+  const pCars = cars.filter(c => c.isPlayer).sort((a, b) => a.pos - b.pos);
+  if (pCars.length < 2) return;
+  const front = pCars[0], behind = pCars[1];
+  if (behind.pos - front.pos === 1) {
+    const tmpProg = front.lapProgress;
+    front.lapProgress = behind.lapProgress - 0.004;
+    behind.lapProgress = tmpProg;
+    addRadioMsg('TEAM ORDER', `🔄 チームオーダー発令！${behind.code} を先行させました。`, 'alert');
+  } else {
+    addRadioMsg('ENGINEER', `チームオーダーは2台が連続した順位で走行中に実行できます。`, 'engineer');
+  }
+}
+
 function updateLiveTelemetryNumbers() {
   cars.filter(c => c.isPlayer).forEach(car => {
     const wVal = document.getElementById(`wearVal_${car.code}`);
@@ -1529,7 +2581,6 @@ function updateLiveTelemetryNumbers() {
     if (wVal && wBar) {
       wVal.textContent = `${Math.round(car.tireWear)}%`;
       wBar.style.width = `${car.tireWear}%`;
-      wBar.style.background = car.tireWear > 60 ? 'var(--green)' : (car.tireWear > 30 ? 'var(--yellow)' : 'var(--f1-red)');
     }
     if (eVal && eBar) {
       eVal.textContent = `${Math.round(car.ersBattery)}%`;
@@ -1541,29 +2592,31 @@ function updateLiveTelemetryNumbers() {
 
 function updateTimingTower() {
   const tbody = document.getElementById('timingBody');
+  if (!tbody) return;
   tbody.innerHTML = cars.map(c => {
     const isFL = fastestLap.driver === c.code;
     const wearColor = c.tireWear > 60 ? 'var(--green)' : (c.tireWear > 30 ? 'var(--yellow)' : 'var(--f1-red)');
+    const gapCol = (currentSession === 'QUALI' || currentSession === 'FP')
+      ? (c.bestLapTime ? formatLapTime(c.bestLapTime) : 'NO TIME')
+      : (c.pos === 1 ? 'LEADER' : '+' + c.gapToLeader.toFixed(1) + 's');
+
     return `
-      <tr class="timing-row ${c.isPlayer ? 'player-row' : ''}">
-        <td class="pos-cell">${c.pos}</td>
+      <tr class="timing-row ${c.isPlayer ? 'player-row' : (c.isFriend ? 'friend-row' : '')}">
+        <td style="font-weight:800; text-align:center;">${c.pos}</td>
         <td>
-          <div class="driver-badge">
-            <span class="team-bar" style="background:${c.color};"></span>
+          <div style="display:flex; align-items:center; gap:5px; font-weight:800;">
+            <span style="width:4px; height:15px; background:${c.color}; border-radius:2px;"></span>
             <span>${c.code}</span>
-            ${c.inPit ? '<span class="pit-tag">IN PIT</span>' : (c.drsActive ? '<span class="drs-tag">DRS</span>' : '')}
+            ${c.inPit ? '<span class="pit-tag">PIT</span>' : (c.drsActive ? '<span class="drs-tag">DRS</span>' : '')}
           </div>
         </td>
-        <td>${c.pos === 1 ? 'LEADER' : '+' + c.gapToLeader.toFixed(1) + 's'}</td>
-        <td>${c.pos === 1 ? '-' : '+' + c.interval.toFixed(1) + 's'}</td>
+        <td>${gapCol}</td>
+        <td>${c.pos === 1 || currentSession !== 'RACE' ? '-' : '+' + c.interval.toFixed(1) + 's'}</td>
         <td>
           <span class="tire-icon tire-${c.tire}">${c.tire}</span>
-          <div class="wear-mini-bar">
-            <div class="wear-mini-fill" style="width:${c.tireWear}%; background:${wearColor};"></div>
-          </div>
-          <span style="font-size:0.7rem; color:var(--text-sub);">${c.tireAge}L</span>
+          <div class="wear-mini-bar"><div class="wear-mini-fill" style="width:${c.tireWear}%; background:${wearColor};"></div></div>
         </td>
-        <td class="${isFL ? 'fastest-lap' : ''}">${c.lastLapTime ? formatLapTime(c.lastLapTime) : '--:--.---'}</td>
+        <td style="${isFL ? 'color:var(--purple);font-weight:800;' : ''}">${c.lastLapTime ? formatLapTime(c.lastLapTime) : '--:--.---'}</td>
         <td style="text-align:center;">${c.pitStops}</td>
       </tr>
     `;
@@ -1575,168 +2628,85 @@ function checkMandatoryTireStatus() {
   const ok = pCars.every(c => c.wetUsed || new Set(c.usedCompounds).size >= 2);
   const el = document.getElementById('mandatoryStatus');
   if (ok) {
-    el.textContent = 'タイヤ義務: 2台とも達成済 ✓';
+    el.textContent = 'タイヤ義務: 達成済 ✓';
     el.style.color = 'var(--green)';
   } else {
-    el.textContent = 'タイヤ義務: 未達成の車両あり';
+    el.textContent = 'タイヤ義務: 未達成';
     el.style.color = 'var(--yellow)';
   }
 }
 
-// === Canvas サーキットマップ描画 ===
-function buildSmoothTrack(pts) {
-  smoothTrackPoints = [];
-  const stepsPerSeg = 25;
-  const n = pts.length;
-  for (let i = 0; i < n; i++) {
-    const p0 = pts[(i - 1 + n) % n];
-    const p1 = pts[i];
-    const p2 = pts[(i + 1) % n];
-    const p3 = pts[(i + 2) % n];
-    for (let tStep = 0; tStep < stepsPerSeg; tStep++) {
-      const t = tStep / stepsPerSeg;
-      const t2 = t * t;
-      const t3 = t2 * t;
-      const x = 0.5 * ((2 * p1[0]) + (-p0[0] + p2[0]) * t + (2*p0[0] - 5*p1[0] + 4*p2[0] - p3[0]) * t2 + (-p0[0] + 3*p1[0] - 3*p2[0] + p3[0]) * t3);
-      const y = 0.5 * ((2 * p1[1]) + (-p0[1] + p2[1]) * t + (2*p0[1] - 5*p1[1] + 4*p2[1] - p3[1]) * t2 + (-p0[1] + 3*p1[1] - 3*p2[1] + p3[1]) * t3);
-      smoothTrackPoints.push([x, y]);
-    }
-  }
-}
-
-function drawTrackMap() {
-  const canvas = document.getElementById('trackCanvas');
-  if (!canvas || smoothTrackPoints.length === 0) return;
-  const rect = canvas.parentElement.getBoundingClientRect();
-  if (canvas.width !== rect.width || canvas.height !== rect.height) {
-    canvas.width = rect.width;
-    canvas.height = rect.height;
-  }
-  const ctx = canvas.getContext('2d');
-  const w = canvas.width;
-  const h = canvas.height;
-  ctx.clearRect(0, 0, w, h);
-
-  // 雨エフェクト背景
-  if (trackWater > 15) {
-    ctx.fillStyle = `rgba(0, 145, 255, ${Math.min(0.18, trackWater / 450)})`;
-    ctx.fillRect(0, 0, w, h);
-  }
-
-  // トラック外枠
-  ctx.beginPath();
-  smoothTrackPoints.forEach((pt, idx) => {
-    const px = pt[0] * w;
-    const py = pt[1] * h;
-    if (idx === 0) ctx.moveTo(px, py);
-    else ctx.lineTo(px, py);
-  });
-  ctx.closePath();
-  ctx.lineWidth = 14;
-  ctx.strokeStyle = '#2d3548';
-  ctx.lineJoin = 'round';
-  ctx.stroke();
-
-  // トラックアスファルト
-  ctx.lineWidth = 8;
-  ctx.strokeStyle = flagState === 'GREEN' ? '#11151f' : '#5c4d00';
-  ctx.stroke();
-
-  // チェッカーライン（Start/Finish）
-  const sf = smoothTrackPoints[0];
-  ctx.fillStyle = '#fff';
-  ctx.fillRect(sf[0] * w - 6, sf[1] * h - 10, 12, 20);
-
-  // 各マシンのドットとラベル描画（上位が前面に来るよう逆順描画）
-  [...cars].reverse().forEach(car => {
-    const idx = Math.floor((car.lapProgress % 1) * smoothTrackPoints.length);
-    const pt = smoothTrackPoints[Math.max(0, Math.min(smoothTrackPoints.length - 1, idx))];
-    const cx = pt[0] * w;
-    const cy = pt[1] * h;
-
-    // プレイヤー車両は外周リングを強調
-    if (car.isPlayer) {
-      ctx.beginPath();
-      ctx.arc(cx, cy, 11, 0, Math.PI * 2);
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-    }
-
-    ctx.beginPath();
-    ctx.arc(cx, cy, car.isPlayer ? 7 : 5.5, 0, Math.PI * 2);
-    ctx.fillStyle = car.color;
-    ctx.fill();
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    // ドライバーコードラベル
-    ctx.font = car.isPlayer ? 'bold 11px sans-serif' : '600 10px sans-serif';
-    ctx.fillStyle = car.isPlayer ? '#ffffff' : '#cbd5e0';
-    ctx.fillText(car.code, cx + 9, cy + 4);
-  });
-}
-
-// === 無線ログ追加 ===
 function addRadioMsg(sender, text, type = 'engineer') {
   const log = document.getElementById('radioLog');
+  if (!log) return;
   const div = document.createElement('div');
   div.className = `radio-msg ${type}`;
-  div.innerHTML = `<strong>[LAP ${currentLap} | ${sender}]</strong> ${text}`;
+  div.innerHTML = `<strong>[${currentSession} L${currentLap} | ${sender}]</strong> ${text}`;
   log.prepend(div);
 }
 
-// === レース終了＆リザルト集計 ===
-function finishRace() {
-  raceActive = false;
-  const ptsTable = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
+function finishSession() {
+  setSimSpeed(0);
+  const modal = document.getElementById('resultModal');
+  const title = document.getElementById('resultTitle');
+  const sub = document.getElementById('resultSubtitle');
+  const nextBtn = document.getElementById('resultNextBtn');
 
-  // ドライタイヤ2種義務違反ペナルティ判定
-  cars.forEach(c => {
-    if (!c.wetUsed && new Set(c.usedCompounds).size < 2) {
-      c.totalTime += 30.0;
-      c.penaltyNote = '+30s (タイヤ義務違反)';
-    }
-  });
+  if (currentSession === 'FP') {
+    teamMoney += 5.0;
+    savePersistentData();
+    title.textContent = '🔧 FREE PRACTICE 完了 (データ収集達成)';
+    sub.textContent = `テレメトリー収集ボーナスとして開発資金 +$5.0M を獲得しました！（現在資金: $${teamMoney.toFixed(1)}M）`;
+    nextBtn.textContent = '⏱️ 公式予選 (QUALIFYING) へ進む';
+  } else if (currentSession === 'QUALI') {
+    cars.sort((a, b) => (a.bestLapTime || 999) - (b.bestLapTime || 999));
+    title.textContent = '⏱️ QUALIFYING RESULT (決勝スターティンググリッド確定)';
+    sub.textContent = `ポールポジション: ${cars[0].name} (${cars[0].code})`;
+    nextBtn.textContent = '🏁 決勝レース (GRAND PRIX) を開始する';
+  } else {
+    const ptsTable = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
+    const prizeTable = [15.0, 12.0, 10.0, 8.0, 6.5, 5.5, 4.5, 4.0, 3.5, 3.0];
+    let earnedPts = 0, earnedMoney = 0;
+    cars.forEach((c, idx) => {
+      if (c.isPlayer) {
+        earnedPts += ptsTable[idx] || 0;
+        earnedMoney += prizeTable[idx] || 2.0;
+      }
+    });
+    teamMoney += earnedMoney;
+    savePersistentData();
+    title.textContent = '🏆 GRAND PRIX RACE CLASSIFICATION';
+    sub.textContent = `チーム獲得ポイント: ${earnedPts} PTS | 獲得賞金: +$${earnedMoney.toFixed(1)}M (総資金: $${teamMoney.toFixed(1)}M)`;
+    nextBtn.textContent = '🏠 ロビー＆R&Dマシン開発画面へ戻る';
+  }
 
-  cars.sort((a, b) => a.totalTime - b.totalTime);
-  let teamPts = 0;
+  const rowsHtml = cars.map((c, idx) => `
+    <tr class="timing-row ${c.isPlayer ? 'player-row' : ''}">
+      <td style="font-weight:800; text-align:center;">P${idx + 1}</td>
+      <td><strong>${c.name} (${c.code})</strong> - ${c.teamName}</td>
+      <td>${c.bestLapTime ? formatLapTime(c.bestLapTime) : '--:--.---'}</td>
+      <td>${c.usedCompounds.join(' → ')}</td>
+    </tr>
+  `).join('');
 
-  const rowsHtml = cars.map((c, idx) => {
-    const pos = idx + 1;
-    let pts = ptsTable[idx] || 0;
-    if (fastestLap.driver === c.code && pos <= 10) pts += 1;
-    if (c.isPlayer) teamPts += pts;
-
-    return `
-      <tr class="timing-row ${c.isPlayer ? 'player-row' : ''}">
-        <td class="pos-cell">${pos}</td>
-        <td>
-          <div class="driver-badge">
-            <span class="team-bar" style="background:${c.color};"></span>
-            <span>${c.name} (${c.code})</span>
-            ${fastestLap.driver === c.code ? '<span style="color:var(--purple); font-size:0.75rem;">★FL</span>' : ''}
-          </div>
-        </td>
-        <td>${c.usedCompounds.join(' → ')} (${c.pitStops} Stop)</td>
-        <td>${pos === 1 ? 'WINNER' : '+' + (c.totalTime - cars[0].totalTime).toFixed(1) + 's'} ${c.penaltyNote || ''}</td>
-        <td style="font-weight:900; color:var(--yellow);">${pts} PTS</td>
-      </tr>
-    `;
-  }).join('');
-
-  document.getElementById('resultSubtitle').textContent =
-    `チーム獲得ポイント: ${teamPts} PTS | Fastest Lap: ${fastestLap.driver} (${formatLapTime(fastestLap.time)})`;
   document.getElementById('resultTableContainer').innerHTML = `
     <table class="timing-table">
-      <thead>
-        <tr><th>POS</th><th>DRIVER</th><th>STINT HISTORY</th><th>TIME / GAP</th><th>POINTS</th></tr>
-      </thead>
+      <thead><tr><th>POS</th><th>DRIVER / TEAM</th><th>BEST LAP</th><th>TIRES</th></tr></thead>
       <tbody>${rowsHtml}</tbody>
     </table>
   `;
-  document.getElementById('resultModal').classList.remove('hidden');
+  modal.classList.remove('hidden');
+}
+
+function handleResultContinue() {
+  document.getElementById('resultModal').classList.add('hidden');
+  if (currentSession === 'FP') {
+    initSession('QUALI');
+  } else if (currentSession === 'QUALI') {
+    initSession('RACE');
+  } else {
+    openLobbyModal();
+  }
 }
 
 function formatLapTime(sec) {
@@ -1745,8 +2715,11 @@ function formatLapTime(sec) {
   return `${m}:${s}`;
 }
 
-// 起動時セットアップ表示
+// 初期化実行
+loadPersistentData();
 initSetupUI();
+setupDrivingControls();
+initPeerJS();
 </script>
 </body>
 </html>
